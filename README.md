@@ -2,6 +2,7 @@
 
 Jogo de educação financeira para o 3º, 4º e 5º anos do Ensino Fundamental.
 
+- Vídeo falado "Conheça o dinheiro": o Dindim narra, com legendas, a história do dinheiro e as características de cada moeda e nota do Real.
 - 6 fases: Conhecendo o dinheiro, Mercado inteligente, Necessidade ou desejo?, Desafio da economia, Cofrinho dos sonhos e O desafio do orçamento.
 - Funciona em computador, tablet e celular, sem instalação e sem internet depois de carregado.
 - O progresso fica salvo no próprio aparelho, separado por aluno.
