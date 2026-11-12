@@ -1,0 +1,2431 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#5cc8ff">
+<script>window.JOGO_ARQUIVO=true</script>
+<title>Missão Cuidar do Dinheiro</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: palco de uma tela só. Céu e colinas ao fundo; no centro, cartões brancos
+   tipo "adesivo" (máx. 920px) com botões grandes de apertar. Visual único e diurno, por escolha. */
+:root {
+  --ceu1: #5cc8ff; --ceu2: #c4f0ff; --colina1: #93e26b; --colina2: #53c67b;
+  --tinta: #1f2a5a; --tinta2: #55608f; --papel: #ffffff; --papel2: #f1f6ff; --linha: #d6e1fa;
+  --sol: #ffd23f; --sol-esc: #e0a200;
+  --coral: #ff6b5e; --coral-esc: #d6443a;
+  --menta: #18c29c; --menta-esc: #0d977a;
+  --uva: #7a5cff; --uva-esc: #563be0;
+  --laranja: #ff9a1f; --laranja-esc: #dd7700;
+  --verde: #2fbf71; --verde-esc: #1d9655;
+  --rosa: #ff86b3; --rosa-esc: #e8558c;
+  --azul: #2f8cff; --azul-esc: #1a67d2;
+  --f-titulo: "Baloo 2", "Trebuchet MS", "Segoe UI", system-ui, sans-serif, "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji";
+  --f-texto: "Nunito", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif, "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji";
+  --raio: 22px;
+  --din: 58px;
+  color-scheme: light;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--ceu1); color: var(--tinta);
+  font-family: var(--f-texto); font-size: 17px; font-weight: 700; line-height: 1.35;
+  -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; overflow: hidden;
+}
+[hidden] { display: none !important; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; padding: 0; touch-action: manipulation; }
+h1, h2, h3, p { margin: 0; }
+h1, h2, h3 { font-family: var(--f-titulo); line-height: 1.05; text-wrap: balance; }
+:focus-visible { outline: 4px solid var(--uva); outline-offset: 3px; }
+svg { display: block; }
+
+.app { position: relative; height: 100%; overflow: hidden;
+  background: linear-gradient(180deg, var(--ceu1) 0%, var(--ceu2) 70%); }
+
+/* ---------- Cenário ---------- */
+.cenario { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.sol { position: absolute; top: -50px; right: -40px; width: 190px; height: 190px; border-radius: 50%;
+  background: radial-gradient(circle, #fff3a6 0 34%, var(--sol) 35% 52%, rgba(255,210,63,.35) 53% 70%, rgba(255,210,63,0) 71%); }
+.nuvem { position: absolute; width: 150px; height: 46px; border-radius: 46px; background: var(--papel); opacity: .85;
+  animation: nuvem 60s linear infinite; }
+.nuvem::before, .nuvem::after { content: ""; position: absolute; background: var(--papel); border-radius: 50%; }
+.nuvem::before { width: 62px; height: 62px; left: 22px; top: -30px; }
+.nuvem::after { width: 46px; height: 46px; left: 74px; top: -20px; }
+.nuvem.n1 { top: 9%; left: -160px; }
+.nuvem.n2 { top: 24%; left: -160px; transform: scale(.7); animation-duration: 85s; animation-delay: -30s; opacity: .7; }
+.nuvem.n3 { top: 4%; left: -160px; transform: scale(.55); animation-duration: 110s; animation-delay: -70s; opacity: .6; }
+@keyframes nuvem { to { left: 105%; } }
+.colinas { position: absolute; left: 0; right: 0; bottom: 0; height: 30%; min-height: 120px; }
+.colinas svg { width: 100%; height: 100%; }
+
+/* ---------- Telas ---------- */
+.tela { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden;
+  padding-block: 14px 20px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  animation: entra .35s ease both; }
+@keyframes entra { from { transform: translateY(14px); } to { transform: none; } }
+.miolo { width: 100%; max-width: 920px; margin: 0 auto; }
+
+/* ---------- Botões ---------- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 56px; padding: 10px 26px; border-radius: 18px;
+  font-family: var(--f-titulo); font-size: 1.35rem; font-weight: 800; letter-spacing: .02em;
+  color: #fff; background: var(--cb, var(--azul)); box-shadow: 0 6px 0 var(--cs, var(--azul-esc)), 0 10px 18px rgba(31,42,90,.18);
+  transition: transform .08s, box-shadow .08s, filter .15s; user-select: none; -webkit-user-select: none; }
+.btn:hover { filter: brightness(1.06); }
+.btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--cs, var(--azul-esc)), 0 4px 8px rgba(31,42,90,.18); }
+.btn[disabled] { filter: grayscale(.7) opacity(.55); pointer-events: none; }
+.btn svg { width: 1.2em; height: 1.2em; flex: none; }
+.btn-verde { --cb: var(--verde); --cs: var(--verde-esc); }
+.btn-sol { --cb: var(--sol); --cs: var(--sol-esc); color: var(--tinta); }
+.btn-coral { --cb: var(--coral); --cs: var(--coral-esc); }
+.btn-uva { --cb: var(--uva); --cs: var(--uva-esc); }
+.btn-claro { --cb: var(--papel); --cs: var(--linha); color: var(--tinta); }
+.btn-g { min-height: 72px; font-size: 1.9rem; padding: 12px 44px; border-radius: 24px; }
+.btn-p { min-height: 46px; font-size: 1.05rem; padding: 6px 16px; border-radius: 14px; }
+.btn-ic { width: 52px; min-width: 52px; height: 52px; min-height: 52px; padding: 0; border-radius: 16px; }
+.btn-ic svg { width: 28px; height: 28px; }
+
+.cartao { background: var(--papel); border-radius: var(--raio); box-shadow: 0 8px 0 rgba(31,42,90,.10), 0 14px 30px rgba(31,42,90,.16); }
+.selo { display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px; border-radius: 999px;
+  background: var(--papel); color: var(--tinta); font-family: var(--f-titulo); font-weight: 800; font-size: 1.1rem;
+  box-shadow: 0 3px 0 rgba(31,42,90,.12); }
+.selo svg { width: 22px; height: 22px; }
+
+/* ---------- Mascote ---------- */
+.mascote { width: 100%; }
+.mascote svg { width: 100%; height: auto; overflow: visible; }
+.masc-corpo { transform-origin: 100px 170px; animation: respira 3.2s ease-in-out infinite; }
+@keyframes respira { 50% { transform: scale(1.025, .975); } }
+.masc-moeda { animation: moedinha 2.6s ease-in-out infinite; }
+@keyframes moedinha { 0%, 100% { transform: translateY(-10px); } 50% { transform: translateY(6px); } }
+.olhos, .boca { display: none; }
+.mascote[data-humor="neutro"] .o-neutro, .mascote[data-humor="neutro"] .b-neutro,
+.mascote[data-humor="feliz"] .o-feliz, .mascote[data-humor="feliz"] .b-feliz,
+.mascote[data-humor="triste"] .o-triste, .mascote[data-humor="triste"] .b-triste { display: inline; }
+.o-neutro { transform-origin: 100px 92px; animation: pisca 4.5s infinite; }
+@keyframes pisca { 0%, 94%, 100% { transform: scaleY(1); } 96.5% { transform: scaleY(.1); } }
+.mascote[data-humor="feliz"] .masc-corpo { animation: pula .55s ease 2; }
+@keyframes pula { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-16px) scale(.97, 1.04); } 70% { transform: translateY(0) scale(1.04, .95); } }
+.mascote[data-humor="triste"] .masc-corpo { animation: balanca .5s ease 1; }
+@keyframes balanca { 20% { transform: rotate(-5deg); } 60% { transform: rotate(5deg); } }
+
+/* ---------- Dinheiro ---------- */
+.din { display: inline-block; flex: none; line-height: 0; filter: drop-shadow(0 3px 0 rgba(31,42,90,.22)); }
+.din-moeda { width: calc(var(--din) * var(--s, 1)); height: calc(var(--din) * var(--s, 1)); }
+.din-nota { width: calc(var(--din) * 2); height: var(--din); }
+.din svg { width: 100%; height: 100%; }
+.grupo-din { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; }
+
+/* ---------- Modal ---------- */
+.modal { position: absolute; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
+  background: rgba(31,42,90,.55);
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px)); }
+.modal-caixa { width: 100%; max-width: 640px; max-height: 100%; overflow-y: auto; padding: 22px 22px 20px;
+  animation: pop .3s cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes pop { from { transform: scale(.7); } to { transform: none; } }
+.modal-caixa h2 { font-size: 1.7rem; margin-bottom: 10px; }
+.modal-caixa h3 { font-size: 1.15rem; margin: 14px 0 4px; color: var(--uva-esc); }
+.modal-caixa p, .modal-caixa li { font-weight: 600; font-size: .98rem; }
+.modal-caixa ul { margin: 4px 0; padding-left: 20px; }
+.modal-acoes { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; margin-top: 18px; }
+
+/* ---------- Confete ---------- */
+.confete { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 70; }
+.confete i { position: absolute; top: -20px; width: 12px; height: 16px; border-radius: 3px; animation: cai linear forwards; }
+@keyframes cai { to { transform: translate3d(var(--dx, 0), 110vh, 0) rotate(var(--rot, 720deg)); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+.colinas .c1 { fill: var(--colina1); }
+.colinas .c2 { fill: var(--colina2); }
+
+/* ---------- Tela inicial ---------- */
+.inicio { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; }
+.faixa { font-family: var(--f-titulo); font-weight: 800; font-size: clamp(1.2rem, 4.4vw, 2rem); letter-spacing: .08em;
+  color: var(--tinta); background: var(--sol); padding: 2px 26px; border-radius: 14px; transform: rotate(-2deg);
+  box-shadow: 0 5px 0 var(--sol-esc); }
+.titulo { font-size: clamp(2.1rem, 8.6vw, 4.6rem); font-weight: 800; color: var(--papel); letter-spacing: .01em;
+  text-shadow: 0 3px 0 var(--azul-esc), 0 6px 0 var(--tinta), 0 12px 18px rgba(31,42,90,.3); max-width: 15ch; }
+.titulo span { display: block; color: var(--sol); font-size: 1.28em; }
+.inicio-palco { position: relative; width: min(240px, 46vw, 34vh); margin: 2px 0 4px; }
+.inicio-masc { position: relative; }
+.chuva { position: absolute; inset: -30px -90px; }
+.chuva .din { position: absolute; --din: 34px; animation: flutua 4s ease-in-out infinite; }
+@keyframes flutua { 0%, 100% { transform: translateY(0) rotate(-8deg); } 50% { transform: translateY(-16px) rotate(8deg); } }
+.inicio-links { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 8px; }
+#b-jogar { animation: chama 1.6s ease-in-out infinite; }
+@keyframes chama { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+
+/* ---------- Quem vai jogar ---------- */
+.jogador-cx { padding: 22px 22px 26px; display: flex; flex-direction: column; gap: 10px; align-items: stretch; max-width: 640px; margin: 10px auto; }
+.jogador-cx h2 { font-size: 1.7rem; margin-top: 4px; }
+.rotulo { font-size: .95rem; color: var(--tinta2); }
+.campo { width: 100%; min-height: 56px; padding: 8px 18px; border-radius: 16px; border: 3px solid var(--linha); background: var(--papel2);
+  font-family: var(--f-titulo); font-size: 1.4rem; font-weight: 700; color: var(--tinta); }
+.campo:focus { border-color: var(--uva); outline: none; }
+.campo::placeholder { color: var(--tinta2); opacity: .6; }
+.anos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.ano { display: flex; flex-direction: column; align-items: center; gap: 0; padding: 12px 8px 12px; border-radius: 20px;
+  background: var(--papel2); border: 4px solid var(--linha); color: var(--tinta); text-align: center; transition: transform .1s; }
+.ano b { font-family: var(--f-titulo); font-size: 2.6rem; line-height: 1; }
+.ano span { font-family: var(--f-titulo); font-size: 1.1rem; }
+.ano small { font-size: .78rem; font-weight: 700; color: var(--tinta2); margin-top: 4px; line-height: 1.2; }
+.ano:active { transform: scale(.96); }
+.ano.sel { background: var(--sol); border-color: var(--sol-esc); box-shadow: 0 5px 0 var(--sol-esc); transform: translateY(-3px); }
+.ano.sel small { color: var(--tinta); }
+.chave { display: flex; align-items: center; gap: 12px; padding: 8px 4px; cursor: pointer; font-size: 1rem; }
+.chave input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.chave-trilho { flex: none; width: 58px; height: 32px; border-radius: 32px; background: var(--linha); position: relative; transition: background .2s; }
+.chave-trilho::after { content: ""; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: var(--papel); box-shadow: 0 2px 4px rgba(31,42,90,.3); transition: left .2s; }
+.chave input:checked + .chave-trilho { background: var(--verde); }
+.chave input:checked + .chave-trilho::after { left: 30px; }
+.chave input:focus-visible + .chave-trilho { outline: 4px solid var(--uva); outline-offset: 3px; }
+#b-entrar { align-self: center; margin-top: 6px; }
+
+/* ---------- Mapa ---------- */
+.mapa { display: flex; flex-direction: column; gap: 12px; }
+.mapa-topo, .sub-topo { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.espaco { flex: 1; }
+.mapa-quem { min-height: 46px; font-size: 1.15rem; }
+.mapa-quem em { font-style: normal; background: var(--uva); color: #fff; padding: 0 10px; border-radius: 999px; font-size: .95rem; }
+.mapa-dica { display: flex; align-items: center; gap: 10px; }
+.mapa-dica .mascote { width: 86px; flex: none; }
+.balao { position: relative; background: var(--papel); border-radius: 20px; padding: 10px 16px; box-shadow: 0 5px 0 rgba(31,42,90,.12); min-width: 0; }
+.balao::before { content: ""; position: absolute; left: -10px; top: 50%; margin-top: -10px; border: 10px solid transparent; border-right-color: var(--papel); border-left: 0; }
+.fases { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.fase-bt { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 16px 10px 12px; border-radius: 26px;
+  background: var(--cf); color: #fff; text-align: center; box-shadow: 0 8px 0 var(--cfs), 0 14px 22px rgba(31,42,90,.2); transition: transform .1s, box-shadow .1s; }
+.fase-bt:hover { transform: translateY(-3px); }
+.fase-bt:active { transform: translateY(5px); box-shadow: 0 3px 0 var(--cfs); }
+.fase-num { position: absolute; top: -8px; left: -6px; width: 40px; height: 40px; border-radius: 50%; background: var(--papel); color: var(--tinta);
+  font-family: var(--f-titulo); font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 0 rgba(31,42,90,.2); }
+.fase-ic { font-size: 3rem; line-height: 1.15; height: 62px; display: flex; align-items: center; justify-content: center; filter: drop-shadow(0 3px 0 rgba(31,42,90,.25)); }
+.fase-ic .din { --din: 52px; filter: none; }
+.fase-tit { font-family: var(--f-titulo); font-size: 1.2rem; font-weight: 800; line-height: 1.05; min-height: 2.2em; display: flex; align-items: center; }
+.fase-estrelas { display: flex; gap: 2px; background: rgba(31,42,90,.22); padding: 3px 10px; border-radius: 999px; }
+.fase-estrelas svg { width: 22px; height: 22px; }
+.fase-bt.proxima::after { content: "JOGUE AGORA"; position: absolute; top: -10px; right: -4px; background: var(--papel); color: var(--coral-esc);
+  font-family: var(--f-titulo); font-size: .8rem; font-weight: 800; padding: 1px 10px; border-radius: 999px; box-shadow: 0 3px 0 rgba(31,42,90,.2); animation: chama 1.4s ease-in-out infinite; }
+.est { fill: var(--sol); stroke: var(--sol-esc); stroke-width: 6; stroke-linejoin: round; }
+.est.vazia { fill: rgba(255,255,255,.35); stroke: rgba(31,42,90,.25); }
+
+/* ---------- Fim de fase ---------- */
+.fim-cx { max-width: 620px; margin: 6px auto; padding: 20px 20px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.fim-sub { color: var(--tinta2); font-size: 1rem; }
+.fim-cx h2 { font-size: clamp(1.8rem, 6vw, 2.6rem); color: var(--uva-esc); }
+.estrelas { display: flex; gap: 6px; justify-content: center; }
+.estrelas svg { width: clamp(56px, 16vw, 84px); height: clamp(56px, 16vw, 84px); animation: pop .5s cubic-bezier(.2,1.6,.4,1) both; }
+.estrelas svg:nth-child(2) { animation-delay: .25s; transform-origin: center; margin-top: -10px; }
+.estrelas svg:nth-child(3) { animation-delay: .5s; }
+.estrelas .est.vazia { fill: var(--papel2); stroke: var(--linha); }
+.fim-linha { display: flex; align-items: center; justify-content: center; gap: 18px; }
+.fim-medalha { width: 110px; }
+.fim-linha .mascote { width: 120px; }
+.fim-pontos { font-family: var(--f-titulo); font-size: 1.6rem; font-weight: 800; }
+.fim-pontos b { color: var(--laranja-esc); font-size: 1.25em; }
+.fim-msg { font-size: 1.05rem; max-width: 44ch; }
+.fim-novas { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.nova { display: inline-flex; align-items: center; gap: 8px; background: var(--papel2); border: 3px solid var(--sol); border-radius: 16px; padding: 4px 14px 4px 6px; font-size: .95rem; animation: pop .5s .8s both; }
+.nova .med-ic { width: 40px; }
+.fim-acoes { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 10px; }
+
+/* ---------- Medalhas ---------- */
+.sub-topo { margin-bottom: 12px; }
+.sub-topo h2 { flex: 1; font-size: clamp(1.6rem, 6vw, 2.2rem); color: var(--papel); text-shadow: 0 3px 0 var(--tinta); }
+.med-cx { padding: 18px 18px 22px; }
+.med-cx h3 { font-size: 1.25rem; color: var(--uva-esc); margin: 6px 0 10px; }
+.med-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.med { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 10px 6px; border-radius: 18px; background: var(--papel2); }
+.med .med-ic { width: 72px; }
+.med b { font-family: var(--f-titulo); font-size: 1rem; line-height: 1.1; }
+.med small { font-size: .78rem; color: var(--tinta2); line-height: 1.2; }
+.med.falta { opacity: .55; }
+.med.falta .med-ic { filter: grayscale(1); }
+.med-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.med-acoes p { font-size: .9rem; color: var(--tinta2); min-width: 0; flex: 1 1 200px; }
+
+/* ---------- Certificado ---------- */
+.cert { background: var(--papel); border-radius: 20px; padding: clamp(18px, 5vw, 40px); text-align: center; border: 8px solid var(--sol);
+  outline: 4px dashed var(--laranja); outline-offset: -18px; box-shadow: 0 14px 30px rgba(31,42,90,.2); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.cert h3 { font-size: clamp(1.8rem, 7vw, 3rem); color: var(--uva-esc); letter-spacing: .06em; }
+.cert .cert-nome { font-family: var(--f-titulo); font-size: clamp(1.8rem, 8vw, 3.2rem); font-weight: 800; color: var(--coral-esc); border-bottom: 4px solid var(--linha); padding: 0 20px; line-height: 1.15; overflow-wrap: anywhere; }
+.cert p { font-size: clamp(.95rem, 3vw, 1.2rem); max-width: 46ch; }
+.cert .mascote { width: 120px; }
+.cert-med { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.cert-med .med-ic { width: 54px; }
+.cert small { color: var(--tinta2); }
+
+@media (max-width: 640px) {
+  .fases { grid-template-columns: repeat(2, 1fr); gap: 16px 12px; }
+  .fase-ic { font-size: 2.5rem; height: 54px; }
+  .fase-tit { font-size: 1.05rem; }
+  .anos { gap: 8px; }
+  .ano b { font-size: 2.1rem; }
+  .ano small { font-size: .72rem; }
+  .mapa-dica .mascote { width: 70px; }
+  .fim-medalha { width: 88px; } .fim-linha .mascote { width: 96px; }
+}
+@media print {
+  html, body, .app { height: auto; overflow: visible; background: #fff; }
+  .cenario, .sem-imprimir, .retorno, .modal, .confete { display: none !important; }
+  .tela { position: static; overflow: visible; animation: none; }
+  .tela:not(#t-cert) { display: none !important; }
+  .cert { box-shadow: none; }
+}
+
+:root { --verde-claro: #dff7e8; --coral-claro: #ffe4e0; --sol-claro: #fff4c7; --uva-claro: #ece7ff; --rosa-fundo: #c63a70; }
+
+/* ---------- Tela da fase ---------- */
+.fase { display: flex; flex-direction: column; gap: 10px; min-height: 100%; }
+.tela-fase.com-retorno { padding-bottom: 300px; }
+.fase-topo { display: flex; align-items: center; gap: 10px; }
+.fase-meio { flex: 1; min-width: 0; }
+#fase-nome { font-size: clamp(1.05rem, 4vw, 1.5rem); color: var(--papel); text-shadow: 0 2px 0 var(--tinta); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pontinhos { display: flex; gap: 6px; margin-top: 5px; }
+.pontinhos i { flex: 1; max-width: 46px; height: 12px; border-radius: 12px; background: rgba(255,255,255,.5); box-shadow: inset 0 -2px 0 rgba(31,42,90,.15); }
+.pontinhos i.atual { background: var(--papel); box-shadow: 0 0 0 3px var(--uva); }
+.pontinhos i.ok { background: var(--verde); }
+.pontinhos i.meio { background: var(--sol); }
+.pontinhos i.nao { background: var(--coral); }
+.fala { display: flex; align-items: center; gap: 12px; }
+.fala .mascote { width: clamp(62px, 15vw, 100px); flex: none; }
+.fala .balao { flex: 1; display: flex; align-items: center; gap: 10px; }
+#fala-txt { flex: 1; min-width: 0; font-size: clamp(1.02rem, 3.5vw, 1.28rem); font-weight: 800; line-height: 1.25; }
+#fala-txt b, #ret-exp b { color: var(--uva-esc); }
+.ouvir { flex: none; width: 46px; height: 46px; border-radius: 50%; background: var(--uva); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 0 var(--uva-esc); }
+.ouvir:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--uva-esc); }
+.ouvir svg { width: 26px; height: 26px; }
+.ouvir.falando { animation: chama .8s ease-in-out infinite; }
+.palco { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 12px; padding-bottom: 6px; }
+.palco > * { animation: entra .3s ease both; }
+.acoes { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; width: 100%; }
+.preco { display: inline-block; background: var(--sol); color: var(--tinta); font-family: var(--f-titulo); font-weight: 800; padding: 0 10px; border-radius: 10px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.treme { animation: treme .4s; }
+@keyframes treme { 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }
+
+/* ---------- Introdução da fase ---------- */
+.intro { width: 100%; max-width: 560px; padding: 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.intro-ic { font-size: 3.4rem; line-height: 1.1; }
+.intro-ic .din { --din: 64px; }
+.intro h3 { font-size: 1.6rem; color: var(--uva-esc); }
+.intro p { font-size: 1.05rem; }
+.intro ul { text-align: left; margin: 2px 0 8px; padding-left: 22px; font-size: .98rem; }
+
+/* ---------- Múltipla escolha ---------- */
+.w-visual { width: 100%; background: var(--papel); border-radius: 22px; padding: 14px; box-shadow: 0 5px 0 rgba(31,42,90,.1); display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.w-visual .grande { font-size: 3.2rem; line-height: 1.1; }
+.w-visual .rot { font-size: .9rem; color: var(--tinta2); text-transform: uppercase; letter-spacing: .06em; }
+.w-visual .alvo { font-family: var(--f-titulo); font-size: clamp(2rem, 8vw, 2.8rem); line-height: 1; color: var(--coral-esc); }
+.w-visual.lado { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 10px 22px; }
+.ops { width: 100%; display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+.ops.cols-1 { grid-template-columns: 1fr; }
+.ops.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.ops.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.op { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 8px 14px; border-radius: 18px; background: var(--papel); color: var(--tinta);
+  font-family: var(--f-titulo); font-size: 1.4rem; font-weight: 800; text-align: left; border: 3px solid transparent;
+  box-shadow: 0 6px 0 var(--linha), 0 10px 16px rgba(31,42,90,.12); transition: transform .08s, box-shadow .08s, border-color .15s; }
+.op:hover { border-color: var(--uva); }
+.op:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--linha); }
+.op-letra { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--uva-claro); color: var(--uva-esc); display: flex; align-items: center; justify-content: center; font-size: 1.05rem; }
+.op-t { flex: 1; min-width: 0; }
+.op.longa { font-family: var(--f-texto); font-size: 1.02rem; line-height: 1.25; }
+.op.img { flex-direction: column; justify-content: center; text-align: center; padding: 12px 8px; gap: 6px; }
+.op.img .op-t { flex: none; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; align-items: center; }
+.op.certa { background: var(--verde-claro); border-color: var(--verde); box-shadow: 0 6px 0 var(--verde-esc); }
+.op.errada { background: var(--coral-claro); border-color: var(--coral); box-shadow: 0 6px 0 var(--coral-esc); animation: treme .4s; }
+.ops.travada .op { pointer-events: none; }
+.ops.travada .op:not(.certa):not(.errada) { opacity: .5; }
+
+/* ---------- Montar valor ---------- */
+.mesa { width: 100%; min-height: 96px; border-radius: 22px; border: 4px dashed rgba(31,42,90,.35); background: rgba(255,255,255,.55); padding: 10px;
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; }
+.mesa.alvo-solta { background: var(--sol-claro); border-color: var(--laranja); }
+.mesa-vazia { color: var(--tinta2); font-size: .98rem; text-align: center; }
+.mesa-soma { font-family: var(--f-titulo); font-size: 1.25rem; background: var(--papel); padding: 2px 16px; border-radius: 999px; box-shadow: 0 3px 0 rgba(31,42,90,.12); }
+.mesa-soma b { color: var(--uva-esc); font-variant-numeric: tabular-nums; }
+.bandeja { width: 100%; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; background: var(--papel); border-radius: 22px; padding: 12px; box-shadow: 0 5px 0 rgba(31,42,90,.1); }
+.peca { line-height: 0; border-radius: 14px; padding: 4px; touch-action: none; transition: transform .1s; }
+.peca:hover { transform: translateY(-3px); }
+.peca:active { transform: scale(.92); }
+.mesa .peca { animation: pop .25s cubic-bezier(.2,1.6,.4,1) both; touch-action: manipulation; }
+.arrastando { opacity: .35; }
+.fantasma { position: fixed; z-index: 100; pointer-events: none; margin: 0; transform: translate(-50%, -50%) scale(1.12) rotate(-4deg); filter: drop-shadow(0 10px 10px rgba(31,42,90,.35)); }
+
+/* ---------- Separar (arrastar e soltar) ---------- */
+.cestos { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cesto { display: flex; flex-direction: column; align-items: center; gap: 0; padding: 10px 8px; border-radius: 22px; min-height: 150px; color: #fff;
+  background: var(--cc); box-shadow: 0 6px 0 var(--ccs); border: 4px solid transparent; text-align: center; transition: transform .1s; }
+.cesto-ic { font-size: 2rem; line-height: 1.1; }
+.cesto b { font-family: var(--f-titulo); font-size: clamp(1.05rem, 4.2vw, 1.4rem); letter-spacing: .03em; line-height: 1.1; }
+.cesto small { font-size: .8rem; opacity: .95; line-height: 1.15; }
+.cesto-itens { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 8px; min-height: 34px; }
+.cesto-itens span { background: var(--papel); border-radius: 12px; padding: 2px 8px; font-size: 1.5rem; line-height: 1.2; animation: pop .3s cubic-bezier(.2,1.6,.4,1) both; }
+.cesto.alvo-solta, .cesto.chama { border-color: var(--papel); transform: scale(1.03); }
+.cesto.chama { animation: chama .9s ease-in-out infinite; }
+.fichas { width: 100%; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; min-height: 86px; }
+.ficha { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; width: clamp(96px, 28vw, 132px); min-height: 86px; padding: 6px; border-radius: 18px;
+  background: var(--papel); color: var(--tinta); border: 4px solid transparent; box-shadow: 0 5px 0 var(--linha), 0 8px 14px rgba(31,42,90,.14); touch-action: none; user-select: none; -webkit-user-select: none; }
+.ficha-e { font-size: 2.2rem; line-height: 1.15; }
+.ficha-t { font-size: .88rem; font-weight: 800; line-height: 1.12; text-align: center; }
+.ficha.larga { width: clamp(150px, 44vw, 210px); }
+.ficha.sel { border-color: var(--uva); transform: translateY(-4px); }
+
+/* ---------- Mercado ---------- */
+.mercado { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.2fr); gap: 12px; align-items: start; }
+.lista { background: var(--sol-claro); border-radius: 18px; padding: 10px 14px; box-shadow: 0 5px 0 rgba(31,42,90,.1); transform: rotate(-1.2deg); }
+.lista h3 { font-size: 1.1rem; margin-bottom: 4px; }
+.lista ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.lista li { display: flex; align-items: center; gap: 8px; font-size: 1rem; }
+.tic { flex: none; width: 22px; height: 22px; border-radius: 6px; border: 3px solid var(--tinta); display: inline-flex; align-items: center; justify-content: center; }
+.lista li.ok .tic { background: var(--verde); border-color: var(--verde-esc); color: #fff; }
+.lista li.ok { text-decoration: line-through; opacity: .7; }
+.tic svg { width: 16px; height: 16px; }
+.prateleira { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background: var(--laranja); padding: 10px; border-radius: 20px; box-shadow: 0 6px 0 var(--laranja-esc); }
+.produto { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px 8px; border-radius: 14px; background: var(--papel); color: var(--tinta); touch-action: none; user-select: none; -webkit-user-select: none; border: 3px solid transparent; }
+.produto:hover { border-color: var(--uva); }
+.prod-e { font-size: 2.1rem; line-height: 1.15; }
+.prod-t { font-size: .85rem; line-height: 1.1; text-align: center; }
+.produto.foi { visibility: hidden; }
+.carrinho { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; min-height: 84px; padding: 8px 14px; border-radius: 22px; border: 4px dashed rgba(31,42,90,.35); background: rgba(255,255,255,.6); }
+.carrinho.alvo-solta { background: var(--sol-claro); border-color: var(--laranja); }
+.carro-ic { font-size: 2.6rem; line-height: 1; }
+.carro-itens { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 1.9rem; }
+.carro-itens span { animation: pop .3s cubic-bezier(.2,1.6,.4,1) both; }
+.carro-itens small { font-size: .95rem; color: var(--tinta2); }
+.cupom { width: 100%; max-width: 380px; background: var(--papel); border-radius: 6px; padding: 10px 16px 12px; font-size: 1.05rem; box-shadow: 0 5px 0 rgba(31,42,90,.12);
+  border-top: 8px dotted var(--linha); border-bottom: 8px dotted var(--linha); }
+.w-visual.lado .cupom { flex: 1 1 240px; }
+.pago { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.cupom-l, .cupom-total { display: flex; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; }
+.cupom-total { margin-top: 6px; padding-top: 6px; border-top: 3px dashed var(--tinta2); font-family: var(--f-titulo); font-size: 1.3rem; }
+.cupom-total b { color: var(--coral-esc); }
+
+/* ---------- Orçamento ---------- */
+.orc { width: 100%; background: var(--papel); border-radius: 20px; padding: 10px 14px 12px; box-shadow: 0 5px 0 rgba(31,42,90,.1); }
+.orc-linha { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 14px; font-size: .98rem; }
+.orc-linha b { font-family: var(--f-titulo); font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+.orc-barra { height: 20px; border-radius: 20px; background: var(--papel2); margin-top: 6px; overflow: hidden; box-shadow: inset 0 2px 0 rgba(31,42,90,.1); }
+.orc-barra i { display: block; height: 100%; width: 0; border-radius: 20px; background: var(--verde); transition: width .3s, background .3s; }
+.orc.estourou .orc-barra i { background: var(--coral); }
+.orc.estourou .orc-sobra { color: var(--coral-esc); }
+.itens-plano { width: 100%; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.item-plano { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px 8px; border-radius: 18px; background: var(--papel); color: var(--tinta);
+  border: 4px solid transparent; box-shadow: 0 5px 0 var(--linha); text-align: center; }
+.ip-e { font-size: 2.1rem; line-height: 1.15; }
+.ip-t { font-size: .9rem; line-height: 1.12; }
+.ip-req { position: absolute; top: -8px; left: -4px; background: var(--coral); color: #fff; font-size: .7rem; padding: 0 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: .04em; }
+.ip-ck { position: absolute; top: -8px; right: -6px; width: 30px; height: 30px; border-radius: 50%; background: var(--verde); color: #fff; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 0 var(--verde-esc); }
+.ip-ck svg { width: 18px; height: 18px; }
+.item-plano.sel { border-color: var(--verde); background: var(--verde-claro); box-shadow: 0 5px 0 var(--verde-esc); }
+.item-plano.sel .ip-ck { display: flex; }
+
+/* ---------- Potes ---------- */
+.potes-mao { font-family: var(--f-titulo); font-size: 1.3rem; background: var(--papel); padding: 4px 18px; border-radius: 999px; box-shadow: 0 4px 0 rgba(31,42,90,.12); }
+.potes-mao b { color: var(--coral-esc); font-variant-numeric: tabular-nums; }
+.potes { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.pote { display: flex; flex-direction: column; align-items: center; gap: 4px; background: var(--papel); border-radius: 20px; padding: 10px 6px; box-shadow: 0 5px 0 rgba(31,42,90,.1); }
+.pote-vidro { position: relative; width: 78px; height: 84px; border-radius: 12px 12px 22px 22px; border: 4px solid var(--cp); background: var(--papel2); overflow: hidden; }
+.pote-nivel { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: var(--cp); opacity: .55; transition: height .3s; }
+.pote-ic { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+.pote-t { font-family: var(--f-titulo); font-size: 1.05rem; letter-spacing: .03em; }
+.pote-v { font-family: var(--f-titulo); font-size: 1.25rem; color: var(--uva-esc); font-variant-numeric: tabular-nums; }
+.pote-bts { display: flex; gap: 8px; }
+.pm { width: 48px; height: 48px; border-radius: 14px; background: var(--cp); color: #fff; font-family: var(--f-titulo); font-size: 1.8rem; font-weight: 800; line-height: 1; box-shadow: 0 4px 0 rgba(31,42,90,.25); }
+.pm:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(31,42,90,.25); }
+.pote-auto { min-height: 48px; display: flex; align-items: center; text-align: center; font-size: .8rem; line-height: 1.15; color: var(--tinta2); }
+.op.quase { background: var(--sol-claro); border-color: var(--laranja); box-shadow: 0 6px 0 var(--laranja-esc); }
+.regra { background: var(--sol-claro); border-radius: 14px; padding: 6px 14px; font-size: 1rem; text-align: center; }
+
+/* ---------- Sonhos e cofrinho ---------- */
+.sonhos { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.sonho { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 14px 6px; border-radius: 22px; background: var(--papel); color: var(--tinta); box-shadow: 0 6px 0 var(--linha), 0 10px 16px rgba(31,42,90,.12); border: 4px solid transparent; }
+.sonho:hover { border-color: var(--uva); }
+.sonho:active { transform: translateY(4px); }
+.sonho-e { font-size: 3rem; line-height: 1.15; }
+.sonho b { font-family: var(--f-titulo); font-size: 1.15rem; line-height: 1.1; text-align: center; }
+.hud { width: 100%; }
+.hud-cofre { display: flex; align-items: center; gap: 10px; background: var(--papel); border-radius: 999px; padding: 6px 14px; box-shadow: 0 4px 0 rgba(31,42,90,.12); }
+.hud-e { font-size: 1.7rem; line-height: 1; }
+.hud-barra { position: relative; flex: 1; height: 30px; border-radius: 30px; background: var(--papel2); overflow: hidden; }
+.hud-barra i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: linear-gradient(90deg, var(--rosa), var(--sol)); border-radius: 30px; transition: width .8s cubic-bezier(.2,1,.4,1); }
+.hud-barra b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--f-titulo); font-size: 1rem; font-variant-numeric: tabular-nums; }
+
+/* ---------- Retorno ---------- */
+.retorno { position: absolute; left: 0; right: 0; bottom: 0; z-index: 40; pointer-events: none;
+  padding: 0 max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  animation: sobe .4s cubic-bezier(.2,1.2,.4,1) both; }
+@keyframes sobe { from { transform: translateY(110%); } to { transform: none; } }
+.retorno[data-tipo="certo"] { --cr: var(--verde); --cre: var(--verde-esc); }
+.retorno[data-tipo="meio"] { --cr: var(--laranja); --cre: var(--laranja-esc); }
+.retorno[data-tipo="errado"] { --cr: var(--coral); --cre: var(--coral-esc); }
+.retorno-cx { pointer-events: auto; max-width: 920px; margin: 0 auto; background: var(--papel); border-radius: 24px; border: 5px solid var(--cr);
+  box-shadow: 0 -6px 30px rgba(31,42,90,.28); padding: 12px 16px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px 14px; align-items: center; max-height: 64vh; overflow-y: auto; }
+.retorno-ic { width: 60px; height: 60px; border-radius: 50%; background: var(--cr); color: #fff; display: flex; align-items: center; justify-content: center; animation: pop .4s .15s cubic-bezier(.2,1.8,.4,1) both; }
+.retorno-ic svg { width: 36px; height: 36px; }
+#ret-tit { font-size: 1.45rem; color: var(--cre); }
+#ret-exp { font-size: 1rem; }
+#ret-exp .grupo-din { justify-content: flex-start; margin-top: 4px; --din: 38px; }
+.retorno-acoes { display: flex; align-items: center; gap: 12px; }
+#b-continuar { --cb: var(--cr); --cs: var(--cre); min-height: 60px; font-size: 1.4rem; padding: 8px 26px; }
+
+@media (max-width: 640px) {
+  :root { --din: 46px; }
+  .ops.cols-4 { grid-template-columns: 1fr 1fr; }
+  .ops.cols-3 { grid-template-columns: 1fr; }
+  .op { font-size: 1.2rem; min-height: 60px; padding: 8px 10px; gap: 8px; }
+  .op.longa { font-size: .96rem; }
+  .op-letra { width: 30px; height: 30px; font-size: .95rem; }
+  .mercado { grid-template-columns: 1fr; }
+  .lista ul { flex-direction: row; flex-wrap: wrap; gap: 4px 14px; }
+  .prod-e { font-size: 1.8rem; }
+  .retorno-cx { grid-template-columns: auto minmax(0, 1fr); }
+  .retorno-acoes { grid-column: 1 / -1; }
+  #b-continuar { flex: 1; }
+  .retorno-ic { width: 48px; height: 48px; } .retorno-ic svg { width: 28px; height: 28px; }
+  .sonho-e { font-size: 2.4rem; } .sonho b { font-size: 1rem; }
+  .pote-vidro { width: 64px; height: 70px; } .pm { width: 44px; height: 44px; }
+  .cesto { min-height: 132px; }
+}
+@media (min-width: 900px) and (min-height: 700px) {
+  :root { --din: 68px; }
+}
+
+</style>
+<div class="app" id="app">
+  <div class="cenario" aria-hidden="true">
+    <div class="sol"></div>
+    <div class="nuvem n1"></div><div class="nuvem n2"></div><div class="nuvem n3"></div>
+    <div class="colinas"><svg viewBox="0 0 1200 300" preserveAspectRatio="none">
+      <path class="c1" d="M0 120 C200 20 380 40 600 110 C820 180 1000 60 1200 100 L1200 300 L0 300Z"/>
+      <path class="c2" d="M0 200 C240 120 420 220 660 180 C900 140 1040 220 1200 170 L1200 300 L0 300Z"/>
+    </svg></div>
+  </div>
+
+  <!-- TELA INICIAL -->
+  <section class="tela" id="t-inicio">
+    <div class="miolo inicio">
+      <p class="faixa">NOSSA MISSÃO:</p>
+      <h1 class="titulo">APRENDER A CUIDAR DO <span>DINHEIRO!</span></h1>
+      <div class="inicio-palco">
+        <div class="chuva" id="chuva" aria-hidden="true"></div>
+        <div class="mascote inicio-masc" id="masc-inicio" data-humor="neutro"></div>
+      </div>
+      <button class="btn btn-verde btn-g" id="b-jogar" type="button">JOGAR</button>
+      <div class="inicio-links">
+        <button class="btn btn-claro btn-p" id="b-medalhas0" type="button">Medalhas</button>
+        <button class="btn btn-claro btn-p" id="b-prof" type="button">Para o professor</button>
+        <button class="btn btn-claro btn-p btn-ic btn-som" type="button" aria-label="Ligar ou desligar o som"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUEM VAI JOGAR -->
+  <section class="tela" id="t-jogador" hidden>
+    <div class="miolo">
+      <div class="cartao jogador-cx">
+        <h2>Quem vai jogar?</h2>
+        <label class="rotulo" for="in-nome">Escreva seu nome</label>
+        <input id="in-nome" class="campo" type="text" maxlength="24" autocomplete="off" placeholder="Seu nome">
+        <h2>Qual é o seu ano?</h2>
+        <div class="anos" id="anos">
+          <button type="button" class="ano" data-ano="3"><b>3º</b><span>ano</span><small>Conhecer o dinheiro e fazer pequenas somas</small></button>
+          <button type="button" class="ano" data-ano="4"><b>4º</b><span>ano</span><small>Compras, troco e comparação de preços</small></button>
+          <button type="button" class="ano" data-ano="5"><b>5º</b><span>ano</span><small>Orçamento, porcentagem e consumo consciente</small></button>
+        </div>
+        <label class="chave" for="ck-voz"><input type="checkbox" id="ck-voz"><span class="chave-trilho"></span><span>Ler as perguntas em voz alta</span></label>
+        <button class="btn btn-verde btn-g" id="b-entrar" type="button">VAMOS LÁ!</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAPA DAS FASES -->
+  <section class="tela" id="t-mapa" hidden>
+    <div class="miolo mapa">
+      <header class="mapa-topo">
+        <button class="selo mapa-quem" id="b-trocar" type="button" aria-label="Trocar jogador ou ano"><span id="mapa-nome"></span><em id="mapa-ano"></em></button>
+        <span class="selo" id="mapa-pontos"></span>
+        <span class="espaco"></span>
+        <button class="btn btn-sol btn-p" id="b-medalhas" type="button">Medalhas</button>
+        <button class="btn btn-claro btn-ic btn-som" type="button" aria-label="Ligar ou desligar o som"></button>
+      </header>
+      <div class="mapa-dica">
+        <div class="mascote" id="masc-mapa" data-humor="neutro"></div>
+        <p class="balao" id="mapa-fala"></p>
+      </div>
+      <div class="fases" id="fases"></div>
+    </div>
+  </section>
+
+  <!-- FASE -->
+  <section class="tela tela-fase" id="t-fase" hidden>
+    <div class="miolo fase">
+      <header class="fase-topo">
+        <button class="btn btn-claro btn-ic" id="b-sair" type="button" aria-label="Voltar ao mapa"></button>
+        <div class="fase-meio"><h2 id="fase-nome"></h2><div class="pontinhos" id="pontinhos"></div></div>
+        <span class="selo" id="fase-pontos"></span>
+        <button class="btn btn-claro btn-ic btn-som" type="button" aria-label="Ligar ou desligar o som"></button>
+      </header>
+      <div class="fala">
+        <div class="mascote" id="masc-fase" data-humor="neutro"></div>
+        <div class="balao"><p id="fala-txt"></p><button class="ouvir" id="b-ouvir" type="button" aria-label="Ouvir a pergunta"></button></div>
+      </div>
+      <div class="hud" id="hud" hidden></div>
+      <div class="palco" id="palco"></div>
+    </div>
+  </section>
+
+  <!-- RESULTADO DA FASE -->
+  <section class="tela" id="t-fim" hidden>
+    <div class="miolo">
+      <div class="cartao fim-cx">
+        <p class="fim-sub" id="fim-sub"></p>
+        <h2 id="fim-tit"></h2>
+        <div class="estrelas" id="fim-estrelas"></div>
+        <div class="fim-linha">
+          <div class="fim-medalha" id="fim-medalha"></div>
+          <div class="mascote" id="masc-fim" data-humor="feliz"></div>
+        </div>
+        <p class="fim-pontos" id="fim-pontos"></p>
+        <p class="fim-msg" id="fim-msg"></p>
+        <div class="fim-novas" id="fim-novas"></div>
+        <div class="fim-acoes">
+          <button class="btn btn-claro" id="b-denovo" type="button">Jogar de novo</button>
+          <button class="btn btn-sol" id="b-mapa" type="button">Mapa</button>
+          <button class="btn btn-verde" id="b-prox" type="button">Próxima fase</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MEDALHAS -->
+  <section class="tela" id="t-medalhas" hidden>
+    <div class="miolo">
+      <header class="sub-topo">
+        <button class="btn btn-claro btn-ic" id="b-volta-med" type="button" aria-label="Voltar"></button>
+        <h2>Minhas medalhas</h2>
+        <span class="selo" id="med-ano"></span>
+      </header>
+      <div class="cartao med-cx">
+        <h3>Medalhas das fases</h3>
+        <div class="med-grade" id="med-fases"></div>
+        <h3>Conquistas especiais</h3>
+        <div class="med-grade" id="med-conq"></div>
+        <div class="med-acoes">
+          <button class="btn btn-uva" id="b-cert" type="button">Ver meu certificado</button>
+          <p id="cert-dica"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CERTIFICADO -->
+  <section class="tela" id="t-cert" hidden>
+    <div class="miolo">
+      <header class="sub-topo sem-imprimir">
+        <button class="btn btn-claro btn-ic" id="b-volta-cert" type="button" aria-label="Voltar"></button>
+        <h2>Certificado</h2>
+        <button class="btn btn-uva btn-p" id="b-imprimir" type="button" hidden>Imprimir</button>
+      </header>
+      <div class="cert" id="cert"></div>
+    </div>
+  </section>
+
+  <!-- RETORNO (feedback) -->
+  <div class="retorno" id="retorno" hidden>
+    <div class="retorno-cx">
+      <div class="retorno-ic" id="ret-ic"></div>
+      <div class="retorno-txt">
+        <h3 id="ret-tit"></h3>
+        <p id="ret-exp"></p>
+      </div>
+      <div class="retorno-acoes">
+        <button class="ouvir" id="b-ouvir2" type="button" aria-label="Ouvir a explicação"></button>
+        <button class="btn btn-g" id="b-continuar" type="button">CONTINUAR</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modal" hidden><div class="cartao modal-caixa" id="modal-cx" role="dialog" aria-modal="true"></div></div>
+  <div class="confete" id="confete" aria-hidden="true"></div>
+</div>
+
+<script>
+'use strict';
+/* ===== Utilitários ===== */
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+function el(tag, cls, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html != null) e.innerHTML = html;
+  return e;
+}
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+function shuffle(a) {
+  a = a.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+const sample = (arr, n) => shuffle(arr).slice(0, n);
+const soma = arr => arr.reduce((s, v) => s + v, 0);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* Dinheiro sempre em centavos (inteiros) para não errar contas. */
+function fmt(c) {
+  const neg = c < 0; c = Math.abs(Math.round(c));
+  const r = Math.floor(c / 100), ct = c % 100;
+  return (neg ? '-' : '') + 'R$ ' + String(r).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + (ct < 10 ? '0' : '') + ct;
+}
+function nomeValor(c) { // "25 centavos", "1 real", "10 reais"
+  if (c < 100) return c + ' centavos';
+  const r = Math.floor(c / 100), ct = c % 100;
+  return r + (r === 1 ? ' real' : ' reais') + (ct ? ' e ' + ct + ' centavos' : '');
+}
+/* Gera 4 alternativas de valor (1 certa + 3 erradas, todas diferentes e positivas). */
+function opsValor(certo, erradas, rotulo) {
+  rotulo = rotulo || fmt;
+  const usados = [certo], ops = [];
+  shuffle(erradas).forEach(v => { if (ops.length < 3 && v > 0 && usados.indexOf(v) < 0) { usados.push(v); ops.push(v); } });
+  const passo = certo % 100 ? (certo % 50 ? 5 : 50) : 100;
+  let k = 1;
+  while (ops.length < 3) {
+    const v = certo + passo * (k % 2 ? Math.ceil(k / 2) : -Math.ceil(k / 2)); k++;
+    if (v > 0 && usados.indexOf(v) < 0) { usados.push(v); ops.push(v); }
+  }
+  return shuffle([{ t: rotulo(certo), ok: true }].concat(ops.map(v => ({ t: rotulo(v) }))));
+}
+/* Alternativas com números simples (semanas, moedas...). */
+function opsNum(certo, erradas, sufixo) {
+  const f = n => n + (sufixo ? ' ' + (typeof sufixo === 'function' ? sufixo(n) : sufixo) : '');
+  const usados = [certo], ops = [];
+  shuffle(erradas).forEach(v => { if (ops.length < 3 && v > 0 && usados.indexOf(v) < 0) { usados.push(v); ops.push(v); } });
+  let k = 1;
+  while (ops.length < 3) { const v = certo + k; k = k > 0 ? -k : -k + 1; if (v > 0 && usados.indexOf(v) < 0) { usados.push(v); ops.push(v); } }
+  return shuffle([{ t: f(certo), ok: true }].concat(ops.map(v => ({ t: f(v) }))));
+}
+/* Menor quantidade de notas e moedas que forma um valor. */
+function decompor(valor, pecas) {
+  const ps = pecas.slice().sort((a, b) => b - a), out = [];
+  let resto = valor;
+  ps.forEach(p => { while (resto >= p && out.length < 30) { out.push(p); resto -= p; } });
+  return resto === 0 ? out : null;
+}
+
+/* ===== Estado salvo no aparelho ===== */
+const CHAVE = 'missaoDinheiro.v1';
+/* Cada nome tem o seu próprio progresso (útil quando vários alunos usam o mesmo aparelho). */
+const S = { nome: '', ano: 0, som: true, voz: false, perfis: {}, prog: null, conq: null };
+function usarPerfil(nome) {
+  const k = 'p:' + String(nome || '').trim().toLowerCase();
+  if (!S.perfis[k] || typeof S.perfis[k] !== 'object') S.perfis[k] = { prog: {}, conq: {} };
+  const p = S.perfis[k];
+  if (!p.prog) p.prog = {};
+  if (!p.conq) p.conq = {};
+  [3, 4, 5].forEach(a => { if (!p.prog[a]) p.prog[a] = {}; });
+  S.prog = p.prog; S.conq = p.conq;
+}
+function carregar() {
+  try {
+    const d = JSON.parse(localStorage.getItem(CHAVE));
+    if (d && typeof d === 'object') ['nome', 'ano', 'som', 'voz', 'perfis'].forEach(k => { if (d[k] != null) S[k] = d[k]; });
+  } catch (e) { /* sem armazenamento: o jogo funciona, só não guarda o progresso */ }
+  if (!S.perfis || typeof S.perfis !== 'object') S.perfis = {};
+  if ([3, 4, 5].indexOf(S.ano) < 0) S.ano = 0;
+  usarPerfil(S.nome);
+}
+function salvar() {
+  try { localStorage.setItem(CHAVE, JSON.stringify({ nome: S.nome, ano: S.ano, som: S.som, voz: S.voz, perfis: S.perfis })); } catch (e) { /* ignora */ }
+}
+
+/* ===== Sons (feitos na hora, sem arquivos) ===== */
+const Som = {
+  ctx: null,
+  iniciar() {
+    if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
+    try { const AC = window.AudioContext || window.webkitAudioContext; if (AC) this.ctx = new AC(); } catch (e) { this.ctx = null; }
+  },
+  nota(freq, ini, dur, tipo, vol, freqFim) {
+    const c = this.ctx; if (!c) return;
+    const t = c.currentTime + ini, o = c.createOscillator(), g = c.createGain();
+    o.type = tipo || 'sine'; o.frequency.setValueAtTime(freq, t);
+    if (freqFim) o.frequency.exponentialRampToValueAtTime(freqFim, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol || 0.2, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + dur + 0.03);
+  },
+  tocar(nome) {
+    if (!S.som) return;
+    this.iniciar(); if (!this.ctx) return;
+    const n = this.nota.bind(this);
+    switch (nome) {
+      case 'clique': n(520, 0, .07, 'triangle', .12); break;
+      case 'pop': n(340, 0, .09, 'sine', .2, 620); break;
+      case 'moeda': n(988, 0, .08, 'square', .07); n(1319, .07, .28, 'square', .07); break;
+      case 'certo': n(659, 0, .12, 'triangle', .2); n(784, .1, .12, 'triangle', .2); n(1047, .2, .3, 'triangle', .22); break;
+      case 'meio': n(587, 0, .14, 'triangle', .2); n(698, .12, .26, 'triangle', .2); break;
+      case 'errado': n(311, 0, .16, 'sawtooth', .09, 233); n(220, .16, .3, 'sawtooth', .09, 165); break;
+      case 'vitoria': [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => n(f, i * .13, i === 6 ? .6 : .14, 'triangle', .2)); break;
+      case 'medalha': [1047, 1319, 1568, 2093].forEach((f, i) => n(f, i * .09, .25, 'sine', .14)); break;
+    }
+  }
+};
+
+/* ===== Leitura em voz alta ===== */
+const Voz = {
+  ok: typeof window.speechSynthesis !== 'undefined' && typeof window.SpeechSynthesisUtterance !== 'undefined',
+  limpar(html) {
+    const d = document.createElement('div'); d.innerHTML = String(html).replace(/<svg[\s\S]*?<\/svg>/g, ' ');
+    let t = d.textContent || '';
+    t = t.replace(/R\$\s?(\d{1,3}(?:\.\d{3})*),(\d{2})/g, (m, r, c) => {
+      const reais = parseInt(r.replace(/\./g, ''), 10), ct = parseInt(c, 10);
+      if (!reais) return ct + ' centavos';
+      return reais + (reais === 1 ? ' real' : ' reais') + (ct ? ' e ' + ct + ' centavos' : '');
+    });
+    return t.replace(/R\$\s?(\d+)/g, '$1 reais').replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu, ' ').replace(/\s+/g, ' ').trim();
+  },
+  falar(html, botao) {
+    if (!this.ok) return;
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(this.limpar(html));
+      u.lang = 'pt-BR'; u.rate = 0.92; u.pitch = 1.1;
+      const vs = window.speechSynthesis.getVoices() || [];
+      const v = vs.filter(x => /^pt[-_]BR/i.test(x.lang))[0] || vs.filter(x => /^pt/i.test(x.lang))[0];
+      if (v) u.voice = v;
+      if (botao) { botao.classList.add('falando'); u.onend = u.onerror = () => botao.classList.remove('falando'); }
+      window.speechSynthesis.speak(u);
+    } catch (e) { /* voz indisponível neste aparelho */ }
+  },
+  parar() { if (this.ok) { try { window.speechSynthesis.cancel(); } catch (e) { /* ignora */ } } $$('.ouvir.falando').forEach(b => b.classList.remove('falando')); }
+};
+
+;
+/* ===== Desenhos do jogo (SVG feito à mão, sem imagens externas) ===== */
+const ICO = {
+  casa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5v-5h4v5"/></svg>',
+  voltar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5 7.5 12l7 7"/></svg>',
+  som: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5l5 4v-13l-5 4z" fill="currentColor"/><path d="M16 9a4.2 4.2 0 0 1 0 6"/><path d="M18.6 6.4a8 8 0 0 1 0 11.2"/></svg>',
+  mudo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.5l5 4v-13l-5 4z" fill="currentColor"/><path d="m16.5 9.5 5 5m0-5-5 5"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 12.5 5 5 10-11"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg>',
+  quase: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v9"/><circle cx="12" cy="19" r="1.2" fill="currentColor"/></svg>',
+  estrela: cls => '<svg viewBox="0 0 100 100" aria-hidden="true"><path class="est ' + (cls || '') + '" d="M50 8 62 37l31 3-23 21 7 31-27-16-27 16 7-31L7 40l31-3z"/></svg>'
+};
+
+function mascoteSVG() {
+  const t = '#1f2a5a', r1 = '#ff86b3', r2 = '#e8558c', r3 = '#ffb5d0';
+  return '<svg viewBox="0 0 200 190" role="img" aria-label="Dindim, o cofrinho">' +
+    '<ellipse cx="100" cy="180" rx="60" ry="8" fill="' + t + '" fill-opacity=".16"/>' +
+    '<g class="masc-corpo">' +
+    '<g class="masc-moeda"><circle cx="100" cy="24" r="16" fill="#ffd23f" stroke="#e0a200" stroke-width="4"/><text x="100" y="31" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="19" fill="#a87600">$</text></g>' +
+    '<rect x="50" y="150" width="32" height="27" rx="11" fill="' + r2 + '"/><rect x="118" y="150" width="32" height="27" rx="11" fill="' + r2 + '"/>' +
+    '<path d="M44 66 34 22l46 22z" fill="' + r1 + '" stroke="' + r2 + '" stroke-width="5" stroke-linejoin="round"/><path d="M47 52 42 32l20 10z" fill="' + r3 + '"/>' +
+    '<path d="M156 66 166 22l-46 22z" fill="' + r1 + '" stroke="' + r2 + '" stroke-width="5" stroke-linejoin="round"/><path d="M153 52 158 32l-20 10z" fill="' + r3 + '"/>' +
+    '<ellipse cx="100" cy="104" rx="77" ry="66" fill="' + r1 + '" stroke="' + r2 + '" stroke-width="5"/>' +
+    '<ellipse cx="70" cy="66" rx="26" ry="12" fill="#fff" fill-opacity=".3" transform="rotate(-18 70 66)"/>' +
+    '<rect x="79" y="41" width="42" height="9" rx="4.5" fill="#b03668"/>' +
+    '<g class="olhos o-neutro"><ellipse cx="70" cy="92" rx="9.5" ry="12.5" fill="' + t + '"/><circle cx="73.5" cy="87" r="4" fill="#fff"/><ellipse cx="130" cy="92" rx="9.5" ry="12.5" fill="' + t + '"/><circle cx="133.5" cy="87" r="4" fill="#fff"/></g>' +
+    '<g class="olhos o-feliz" fill="none" stroke="' + t + '" stroke-width="6" stroke-linecap="round"><path d="M59 96q11-15 22 0"/><path d="M119 96q11-15 22 0"/></g>' +
+    '<g class="olhos o-triste"><ellipse cx="70" cy="95" rx="8.5" ry="10" fill="' + t + '"/><circle cx="73" cy="91" r="3.2" fill="#fff"/><ellipse cx="130" cy="95" rx="8.5" ry="10" fill="' + t + '"/><circle cx="133" cy="91" r="3.2" fill="#fff"/><path d="M58 80l22-7M142 80l-22-7" stroke="' + t + '" stroke-width="5" stroke-linecap="round"/></g>' +
+    '<circle cx="42" cy="118" r="11" fill="#ff5f9a" fill-opacity=".45"/><circle cx="158" cy="118" r="11" fill="#ff5f9a" fill-opacity=".45"/>' +
+    '<ellipse cx="100" cy="120" rx="28" ry="19" fill="' + r3 + '" stroke="' + r2 + '" stroke-width="4"/>' +
+    '<ellipse cx="90.5" cy="120" rx="4.5" ry="7" fill="#d9457f"/><ellipse cx="109.5" cy="120" rx="4.5" ry="7" fill="#d9457f"/>' +
+    '<path class="boca b-neutro" d="M88 146q12 9 24 0" fill="none" stroke="' + t + '" stroke-width="5" stroke-linecap="round"/>' +
+    '<path class="boca b-feliz" d="M84 144q16 22 32 0z" fill="#b03668" stroke="' + t + '" stroke-width="4" stroke-linejoin="round"/>' +
+    '<path class="boca b-triste" d="M89 152q11-9 22 0" fill="none" stroke="' + t + '" stroke-width="5" stroke-linecap="round"/>' +
+    '</g></svg>';
+}
+
+/* Moedas e notas do Real, em desenho simplificado. */
+const MOEDA = {
+  5: { a: '#c5723c', b: '#e8a473', t: '#632e10', s: .82 },
+  10: { a: '#c4962b', b: '#eecb66', t: '#644507', s: .78 },
+  25: { a: '#cf9f1e', b: '#f7d962', t: '#644507', s: .94 },
+  50: { a: '#8996a6', b: '#dde3ea', t: '#38414c', s: .87 },
+  100: { a: '#cf9f1e', b: '#dfe5ec', t: '#38414c', s: 1 }
+};
+const NOTA = {
+  200: { c: '#3d7fd6', l: '#bcd8f8', d: '#173f7c', e: '🐢', bicho: 'tartaruga-marinha' },
+  500: { c: '#8a5cc4', l: '#decef4', d: '#4f2880', e: '🦢', bicho: 'garça' },
+  1000: { c: '#d8473f', l: '#f9c5bf', d: '#8a1d17', e: '🦜', bicho: 'arara' },
+  2000: { c: '#e0ad17', l: '#fcebaa', d: '#7a5900', e: '🐒', bicho: 'mico-leão-dourado' },
+  5000: { c: '#c98338', l: '#f4d8b3', d: '#74400f', e: '🐆', bicho: 'onça-pintada' },
+  10000: { c: '#2aa5c2', l: '#c0eaf4', d: '#0d5a70', e: '🐟', bicho: 'garoupa' },
+  20000: { c: '#868a93', l: '#dee1e6', d: '#43464d', e: '🐺', bicho: 'lobo-guará' }
+};
+const MOEDAS = [5, 10, 25, 50, 100];
+const NOTAS = [200, 500, 1000, 2000, 5000, 10000, 20000];
+function moedaSVG(v) {
+  const m = MOEDA[v], um = v === 100, fa = 'font-family="Arial,sans-serif" text-anchor="middle" fill="' + m.t + '"';
+  return '<svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="' + m.a + '"/>' +
+    '<circle cx="50" cy="50" r="' + (um ? 33 : 40) + '" fill="' + m.b + '"/>' +
+    '<path d="M20 36A33 33 0 0 1 46 15" stroke="#fff" stroke-opacity=".6" stroke-width="5" fill="none" stroke-linecap="round"/>' +
+    '<text x="50" y="' + (um ? 61 : 58) + '" font-weight="900" font-size="' + (um ? 42 : 36) + '" ' + fa + '>' + (um ? 1 : v) + '</text>' +
+    '<text x="50" y="' + (um ? 75 : 76) + '" font-weight="700" font-size="' + (um ? 10 : 9.5) + '" ' + fa + '>' + (um ? 'REAL' : 'CENTAVOS') + '</text></svg>';
+}
+function notaSVG(v) {
+  const k = NOTA[v], n = v / 100, fa = 'font-family="Arial,sans-serif" fill="' + k.d + '"';
+  return '<svg viewBox="0 0 200 100" aria-hidden="true"><rect x="1" y="1" width="198" height="98" rx="12" fill="' + k.c + '"/>' +
+    '<rect x="9" y="9" width="182" height="82" rx="7" fill="' + k.l + '"/>' +
+    '<ellipse cx="143" cy="50" rx="35" ry="33" fill="#fff" fill-opacity=".8"/><text x="143" y="64" text-anchor="middle" font-size="38">' + k.e + '</text>' +
+    '<text x="60" y="62" text-anchor="middle" font-weight="900" font-size="' + (n >= 100 ? 40 : 50) + '" ' + fa + '>' + n + '</text>' +
+    '<text x="60" y="81" text-anchor="middle" font-weight="700" font-size="11" letter-spacing="3" ' + fa + '>REAIS</text>' +
+    '<text x="17" y="25" font-weight="900" font-size="12" ' + fa + '>' + n + '</text><text x="183" y="85" text-anchor="end" font-weight="900" font-size="12" ' + fa + '>' + n + '</text></svg>';
+}
+function rotuloDin(v) { return (v >= 200 ? 'nota de ' : 'moeda de ') + nomeValor(v); }
+function din(v, tam) {
+  const nota = v >= 200;
+  return '<span class="din ' + (nota ? 'din-nota' : 'din-moeda') + '" role="img" aria-label="' + rotuloDin(v) + '" style="' +
+    (nota ? '' : '--s:' + MOEDA[v].s + ';') + (tam ? '--din:' + tam + 'px' : '') + '">' + (nota ? notaSVG(v) : moedaSVG(v)) + '</span>';
+}
+function grupoDin(lista, tam) { return '<div class="grupo-din"' + (tam ? ' style="--din:' + tam + 'px"' : '') + '>' + lista.map(v => din(v)).join('') + '</div>'; }
+
+/* Medalhas: bronze, prata, ouro e conquistas. */
+const MED_COR = { bronze: ['#d9894a', '#a65a22', '#f3b888'], prata: ['#b9c4d0', '#7d8a99', '#eef2f6'], ouro: ['#ffd23f', '#e0a200', '#fff1a8'], conquista: ['#7a5cff', '#563be0', '#cfc3ff'] };
+function medalhaSVG(tipo, miolo) {
+  const c = MED_COR[tipo] || MED_COR.bronze;
+  return '<svg viewBox="0 0 100 120" aria-hidden="true"><path d="M30 4h16l8 34H38z" fill="#ff6b5e"/><path d="M70 4H54l-8 34h16z" fill="#2f8cff"/>' +
+    '<circle cx="50" cy="74" r="40" fill="' + c[1] + '"/><circle cx="50" cy="71" r="40" fill="' + c[0] + '"/><circle cx="50" cy="71" r="30" fill="' + c[2] + '"/>' +
+    '<text x="50" y="' + (miolo && miolo.length <= 2 && /\d/.test(miolo) ? 83 : 84) + '" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="34" fill="' + c[1] + '">' + (miolo || '★') + '</text></svg>';
+}
+
+/* Confete de comemoração. */
+function confete(qtd) {
+  const cx = $('#confete'); if (!cx) return;
+  const cores = ['#ffd23f', '#ff6b5e', '#18c29c', '#7a5cff', '#2f8cff', '#ff86b3', '#ff9a1f'];
+  for (let i = 0; i < (qtd || 60); i++) {
+    const p = document.createElement('i');
+    p.style.left = rnd(0, 100) + '%';
+    p.style.background = pick(cores);
+    p.style.setProperty('--dx', rnd(-120, 120) + 'px');
+    p.style.setProperty('--rot', rnd(360, 1080) + 'deg');
+    p.style.animationDuration = (rnd(18, 34) / 10) + 's';
+    p.style.animationDelay = (rnd(0, 6) / 10) + 's';
+    if (i % 3 === 0) p.style.borderRadius = '50%';
+    cx.appendChild(p);
+    setTimeout(() => p.remove(), 4400);
+  }
+}
+
+;
+/* ===== Tipos de desafio (parte 1): múltipla escolha, montar valor, separar ===== */
+const W = {};
+
+/* Arrastar e soltar com dedo ou mouse. Tocar também funciona (para quem tem dificuldade de arrastar). */
+function arrastavel(elm, cfg) {
+  let ini = null, movendo = false, fant = null, alvo = null, ignora = false;
+  const zonas = () => cfg.zonas().filter(Boolean);
+  function acha(x, y) {
+    const zs = zonas();
+    for (let i = 0; i < zs.length; i++) {
+      const r = zs[i].getBoundingClientRect();
+      if (x >= r.left - 12 && x <= r.right + 12 && y >= r.top - 12 && y <= r.bottom + 12) return zs[i];
+    }
+    return null;
+  }
+  function limpa() {
+    if (fant) { fant.remove(); fant = null; }
+    elm.classList.remove('arrastando');
+    zonas().forEach(z => z.classList.remove('alvo-solta'));
+    ini = null; movendo = false; alvo = null;
+  }
+  elm.addEventListener('pointerdown', e => {
+    if (e.button) return;
+    ini = { x: e.clientX, y: e.clientY, id: e.pointerId };
+    try { elm.setPointerCapture(e.pointerId); } catch (err) { /* ignora */ }
+  });
+  elm.addEventListener('pointermove', e => {
+    if (!ini || e.pointerId !== ini.id) return;
+    if (!movendo) {
+      if (Math.hypot(e.clientX - ini.x, e.clientY - ini.y) < 10) return;
+      movendo = true;
+      const r = elm.getBoundingClientRect();
+      fant = elm.cloneNode(true);
+      fant.classList.add('fantasma'); fant.classList.remove('sel');
+      fant.style.width = r.width + 'px'; fant.style.height = r.height + 'px';
+      $('#app').appendChild(fant);
+      elm.classList.add('arrastando');
+      Som.tocar('pop');
+    }
+    fant.style.left = e.clientX + 'px'; fant.style.top = e.clientY + 'px';
+    const z = acha(e.clientX, e.clientY);
+    if (z !== alvo) { if (alvo) alvo.classList.remove('alvo-solta'); alvo = z; if (alvo) alvo.classList.add('alvo-solta'); }
+    e.preventDefault();
+  });
+  const termina = e => {
+    if (!ini) return;
+    const era = movendo, z = alvo;
+    limpa();
+    if (era) {
+      ignora = true; setTimeout(() => { ignora = false; }, 350);
+      if (z && e.type === 'pointerup') cfg.aoSoltar(z);
+    }
+  };
+  elm.addEventListener('pointerup', termina);
+  elm.addEventListener('pointercancel', termina);
+  elm.addEventListener('click', e => {
+    if (ignora) { e.preventDefault(); e.stopPropagation(); return; }
+    if (cfg.aoTocar) cfg.aoTocar();
+  });
+}
+function tremer(e) { e.classList.remove('treme'); void e.offsetWidth; e.classList.add('treme'); setTimeout(() => e.classList.remove('treme'), 450); }
+
+/* --- Múltipla escolha --- */
+W.mc = function (p, palco, fim) {
+  if (p.visual) palco.appendChild(el('div', 'w-visual' + (p.visualCls ? ' ' + p.visualCls : ''), p.visual));
+  const temImg = p.ops.some(o => o.img);
+  const longa = !temImg && p.ops.some(o => Voz.limpar(o.t).length > 24);
+  const box = el('div', 'ops cols-' + (p.cols || (longa ? 1 : 2)));
+  p.ops.forEach((o, i) => {
+    const b = el('button', 'op' + (o.img ? ' img' : '') + (longa ? ' longa' : ''),
+      '<span class="op-letra">' + 'ABCD'.charAt(i) + '</span><span class="op-t">' + o.t + '</span>');
+    b.type = 'button';
+    if (o.rotulo) b.setAttribute('aria-label', o.rotulo);
+    b.addEventListener('click', () => {
+      if (box.classList.contains('travada')) return;
+      box.classList.add('travada');
+      const nota = o.nota != null ? o.nota : (o.ok ? 1 : 0);
+      b.classList.add(nota === 1 ? 'certa' : (nota > 0 ? 'quase' : 'errada'));
+      if (nota < 1) $$('.op', box).forEach((x, j) => { if (p.ops[j].ok) x.classList.add('certa'); });
+      fim({ nota: nota, explica: (o.pq ? o.pq + ' ' : '') + (p.explica || ''), escolha: o });
+    });
+    box.appendChild(b);
+  });
+  palco.appendChild(box);
+};
+
+/* --- Montar um valor com moedas e notas --- */
+W.montar = function (p, palco, fim) {
+  let pecas = [], tent = 0, travado = false;
+  if (p.visual) palco.appendChild(el('div', 'w-visual' + (p.visualCls ? ' ' + p.visualCls : ''), p.visual));
+  /* ocultaAlvo: o valor não aparece, porque descobrir o valor faz parte do desafio (ex.: calcular o troco). */
+  const alvo = p.ocultaAlvo ? null : el('div', 'w-visual', '<span class="rot">' + (p.rotAlvo || 'Valor pedido') + '</span><b class="alvo">' + fmt(p.alvo) + '</b>');
+  const mesa = el('div', 'mesa'); mesa.setAttribute('aria-label', 'Sua resposta');
+  const somaCx = el('div', 'mesa-soma');
+  const band = el('div', 'bandeja');
+  const acoes = el('div', 'acoes');
+  const bLimpar = el('button', 'btn btn-claro', 'Limpar'); bLimpar.type = 'button';
+  const bOk = el('button', 'btn btn-verde', 'PRONTO!'); bOk.type = 'button';
+  function desenha() {
+    mesa.innerHTML = '';
+    if (!pecas.length) mesa.appendChild(el('p', 'mesa-vazia', 'Toque nas moedas e notas para colocar aqui.<br>Você também pode arrastar!'));
+    pecas.forEach((v, i) => {
+      const b = el('button', 'peca', din(v)); b.type = 'button';
+      b.setAttribute('aria-label', 'Tirar ' + rotuloDin(v));
+      b.addEventListener('click', () => { if (travado) return; pecas.splice(i, 1); Som.tocar('pop'); desenha(); });
+      mesa.appendChild(b);
+    });
+    somaCx.innerHTML = p.mostraSoma ? 'Você colocou: <b>' + fmt(soma(pecas)) + '</b>' : 'Peças colocadas: <b>' + pecas.length + '</b>';
+  }
+  function poe(v) {
+    if (travado) return;
+    if (pecas.length >= 14) { Mascote.diz('Já tem muitas peças! Toque em uma delas para tirar.', 'triste'); return; }
+    pecas.push(v); Som.tocar('moeda'); desenha();
+  }
+  p.bandeja.forEach(v => {
+    const b = el('button', 'peca', din(v)); b.type = 'button';
+    b.setAttribute('aria-label', 'Colocar ' + rotuloDin(v));
+    arrastavel(b, { zonas: () => [mesa], aoSoltar: () => poe(v), aoTocar: () => poe(v) });
+    band.appendChild(b);
+  });
+  bLimpar.addEventListener('click', () => { if (travado) return; pecas = []; Som.tocar('clique'); desenha(); });
+  bOk.addEventListener('click', () => {
+    if (travado) return;
+    if (!pecas.length) { Mascote.diz('Coloque as moedas e notas primeiro!', 'neutro'); tremer(mesa); return; }
+    const s = soma(pecas); tent++;
+    if (s === p.alvo) { travado = true; fim({ nota: tent === 1 ? 1 : .5, explica: p.explica }); return; }
+    if (tent === 1) {
+      Som.tocar('errado'); tremer(mesa);
+      Mascote.diz(s > p.alvo ? 'Passou! Você colocou <b>' + fmt(s) + '</b>. Tire um pouco e tente de novo.'
+        : 'Ainda falta! Você colocou <b>' + fmt(s) + '</b>. Coloque mais e tente de novo.', 'triste');
+      return;
+    }
+    travado = true;
+    const jeito = decompor(p.alvo, p.bandeja);
+    fim({ nota: 0, explica: 'Você colocou ' + fmt(s) + ', mas o valor certo era <b>' + fmt(p.alvo) + '</b>. Um jeito de formar esse valor:' + (jeito ? grupoDin(jeito) : '') + (p.explica || '') });
+  });
+  acoes.appendChild(bLimpar); acoes.appendChild(bOk);
+  [alvo, mesa, somaCx, band, acoes].forEach(x => { if (x) palco.appendChild(x); });
+  desenha();
+};
+
+/* --- Separar em cestos (arrastar e soltar) --- */
+W.separar = function (p, palco, fim) {
+  let sel = null, feitos = 0;
+  const erros = {}, zonas = {};
+  const cestos = el('div', 'cestos'), fichas = el('div', 'fichas');
+  const itens = shuffle(p.itens);
+  function marca(f) {
+    $$('.ficha', fichas).forEach(x => x.classList.remove('sel'));
+    sel = f;
+    Object.keys(zonas).forEach(k => zonas[k].classList.toggle('chama', !!f));
+    if (f) f.classList.add('sel');
+  }
+  function termina() {
+    const n = Object.keys(erros).length;
+    const nota = n === 0 ? 1 : (n * 2 <= itens.length ? .5 : 0);
+    let ex = p.explica || '';
+    if (n) ex = 'Para lembrar: ' + Object.keys(erros).map(k => '<b>' + k + '</b>: ' + erros[k].pq).join(' ') + ' ' + ex;
+    fim({ nota: nota, explica: ex });
+  }
+  function coloca(f, id) {
+    const it = f._it;
+    if (it.c === id) {
+      Som.tocar('moeda');
+      $('.cesto-itens', zonas[id]).appendChild(el('span', '', it.e));
+      f.remove(); marca(null); feitos++;
+      Mascote.diz('<b>' + it.t + '</b>: ' + it.pq, 'feliz');
+      if (feitos === itens.length) setTimeout(termina, 1100);
+    } else {
+      erros[it.t] = it; Som.tocar('errado'); tremer(f); marca(null);
+      Mascote.diz('Hum... pense mais um pouco sobre <b>' + it.t + '</b> e tente de novo!', 'triste');
+    }
+  }
+  p.cestos.forEach(c => {
+    const b = el('button', 'cesto', '<span class="cesto-ic">' + c.ic + '</span><b>' + c.t + '</b><small>' + (c.sub || '') + '</small><div class="cesto-itens"></div>');
+    b.type = 'button'; b.style.setProperty('--cc', c.cor); b.style.setProperty('--ccs', c.cor2);
+    b._id = c.id;
+    b.addEventListener('click', () => {
+      if (sel) coloca(sel, c.id);
+      else Mascote.diz('Primeiro toque em uma figura. Depois toque no lugar dela!', 'neutro');
+    });
+    zonas[c.id] = b; cestos.appendChild(b);
+  });
+  itens.forEach(it => {
+    const f = el('button', 'ficha' + (it.t.length > 18 ? ' larga' : ''), '<span class="ficha-e">' + it.e + '</span><span class="ficha-t">' + it.t + '</span>');
+    f.type = 'button'; f._it = it;
+    arrastavel(f, {
+      zonas: () => Object.keys(zonas).map(k => zonas[k]),
+      aoSoltar: z => coloca(f, z._id),
+      aoTocar: () => { Som.tocar('clique'); marca(sel === f ? null : f); }
+    });
+    fichas.appendChild(f);
+  });
+  palco.appendChild(cestos); palco.appendChild(fichas);
+};
+
+;
+/* ===== Tipos de desafio (parte 2): carrinho, orçamento, potes, escolha ===== */
+
+/* --- Lista de compras: levar para o carrinho só o que está na lista --- */
+W.carrinho = function (p, palco, fim) {
+  let erros = 0, feitos = 0;
+  const merc = el('div', 'mercado');
+  const porId = {}; p.prateleira.forEach(x => { porId[x.id] = x; });
+  const lista = el('div', 'lista', '<h3>Lista de compras</h3><ul>' + p.lista.map(id =>
+    '<li data-id="' + id + '"><i class="tic"></i><span>' + porId[id].e + ' ' + porId[id].t + '</span></li>').join('') + '</ul>');
+  const prat = el('div', 'prateleira');
+  const carro = el('div', 'carrinho', '<span class="carro-ic">🛒</span><div class="carro-itens"><small>Arraste ou toque nos produtos da lista</small></div>');
+  function tenta(b, x) {
+    if (b.classList.contains('foi')) return;
+    if (p.lista.indexOf(x.id) >= 0) {
+      b.classList.add('foi'); Som.tocar('moeda'); feitos++;
+      const ci = $('.carro-itens', carro);
+      if (feitos === 1) ci.innerHTML = '';
+      ci.appendChild(el('span', '', x.e));
+      const li = $('li[data-id="' + x.id + '"]', lista);
+      li.classList.add('ok'); $('.tic', li).innerHTML = ICO.check;
+      Mascote.diz('<b>' + x.t + '</b> está na lista. Para o carrinho!', 'feliz');
+      if (feitos === p.lista.length) setTimeout(() => fim({ nota: erros === 0 ? 1 : (erros === 1 ? .5 : 0), explica: p.explica }), 900);
+    } else {
+      erros++; Som.tocar('errado'); tremer(b);
+      Mascote.diz('<b>' + x.t + '</b> não está na lista! Vamos levar só o que planejamos.', 'triste');
+    }
+  }
+  p.prateleira.forEach(x => {
+    const b = el('button', 'produto', '<span class="prod-e">' + x.e + '</span><span class="prod-t">' + x.t + '</span><span class="preco">' + fmt(x.p) + '</span>');
+    b.type = 'button';
+    arrastavel(b, { zonas: () => [carro], aoSoltar: () => tenta(b, x), aoTocar: () => tenta(b, x) });
+    prat.appendChild(b);
+  });
+  merc.appendChild(lista); merc.appendChild(prat); merc.appendChild(carro);
+  palco.appendChild(merc);
+};
+
+/* --- Orçamento: escolher o que comprar sem passar do dinheiro --- */
+W.plano = function (p, palco, fim) {
+  let tent = 0, travado = false;
+  const sel = {};
+  const orc = el('div', 'orc', '<div class="orc-linha"><span>Você tem <b>' + fmt(p.orc) + '</b></span><span>Gastou <b class="orc-gasto">R$ 0,00</b></span>' +
+    '<span class="orc-sobra">Sobra <b>' + fmt(p.orc) + '</b></span></div><div class="orc-barra"><i></i></div>');
+  const grade = el('div', 'itens-plano');
+  const total = () => soma(p.itens.filter((x, i) => sel[i]).map(x => x.p));
+  function atualiza() {
+    const t = total();
+    $('.orc-gasto', orc).textContent = fmt(t);
+    $('.orc-sobra', orc).innerHTML = t > p.orc ? 'Faltam <b>' + fmt(t - p.orc) + '</b>' : 'Sobra <b>' + fmt(p.orc - t) + '</b>';
+    $('.orc-barra i', orc).style.width = Math.min(100, t / p.orc * 100) + '%';
+    orc.classList.toggle('estourou', t > p.orc);
+  }
+  p.itens.forEach((x, i) => {
+    const b = el('button', 'item-plano', (x.req ? '<span class="ip-req">precisa</span>' : '') + '<i class="ip-ck">' + ICO.check + '</i>' +
+      '<span class="ip-e">' + x.e + '</span><span class="ip-t">' + x.t + '</span><span class="preco">' + fmt(x.p) + '</span>');
+    b.type = 'button'; b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', () => {
+      if (travado) return;
+      sel[i] = !sel[i];
+      b.classList.toggle('sel', !!sel[i]); b.setAttribute('aria-pressed', sel[i] ? 'true' : 'false');
+      Som.tocar(sel[i] ? 'pop' : 'clique');
+      const antes = orc.classList.contains('estourou');
+      atualiza();
+      if (!antes && orc.classList.contains('estourou')) Mascote.diz('Opa! Passou do dinheiro que você tem. Tire alguma coisa.', 'triste');
+    });
+    grade.appendChild(b);
+  });
+  const acoes = el('div', 'acoes');
+  const bOk = el('button', 'btn btn-verde', 'PRONTO!'); bOk.type = 'button';
+  bOk.addEventListener('click', () => {
+    if (travado) return;
+    const t = total(), falta = p.itens.filter((x, i) => x.req && !sel[i]);
+    let prob = null;
+    if (falta.length) prob = 'Faltou comprar: ' + falta.map(x => '<b>' + x.t + '</b>').join(', ') + '. O que tem a etiqueta PRECISA é necessário!';
+    else if (t > p.orc) prob = 'Você passou do orçamento em <b>' + fmt(t - p.orc) + '</b>. Tire algo que não é necessário.';
+    else if (p.minSobra && p.orc - t < p.minSobra) prob = 'Precisa sobrar pelo menos <b>' + fmt(p.minSobra) + '</b> para guardar. Sobrou ' + fmt(p.orc - t) + '.';
+    tent++;
+    if (!prob) {
+      travado = true;
+      const sobra = p.orc - t;
+      fim({ nota: tent === 1 ? 1 : .5, explica: (sobra > 0 ? 'Você gastou ' + fmt(t) + ' e ainda sobraram <b>' + fmt(sobra) + '</b> para guardar! ' : 'Você usou o dinheiro todo sem passar do limite. ') + (p.explica || ''), sobra: sobra });
+      return;
+    }
+    if (tent === 1) { Som.tocar('errado'); tremer(orc); Mascote.diz(prob + ' Arrume e tente de novo.', 'triste'); return; }
+    travado = true;
+    fim({ nota: 0, explica: prob + ' ' + (p.explica || '') });
+  });
+  acoes.appendChild(bOk);
+  palco.appendChild(orc); palco.appendChild(grade); palco.appendChild(acoes);
+  atualiza();
+};
+
+/* --- Potes: dividir o dinheiro (guardar, gastar, doar) --- */
+W.potes = function (p, palco, fim) {
+  let tent = 0, travado = false;
+  const aloc = {}, cx = {};
+  p.potes.forEach(x => { aloc[x.id] = 0; });
+  /* O pote "auto" (GASTAR) recebe sozinho o que sobra: primeiro se separa o que guardar e doar. */
+  const manuais = () => soma(p.potes.filter(x => x.id !== p.auto).map(x => aloc[x.id]));
+  const mao = el('div', 'potes-mao', 'Você recebeu: <b>' + fmt(p.total) + '</b>');
+  const grade = el('div', 'potes');
+  function atualiza() {
+    aloc[p.auto] = p.total - manuais();
+    p.potes.forEach(x => {
+      $('.pote-v', cx[x.id]).textContent = fmt(aloc[x.id]);
+      $('.pote-nivel', cx[x.id]).style.height = (aloc[x.id] / p.total * 100) + '%';
+    });
+  }
+  p.potes.forEach(x => {
+    const c = el('div', 'pote', '<div class="pote-vidro"><i class="pote-nivel"></i><span class="pote-ic">' + x.ic + '</span></div><b class="pote-t">' + x.t + '</b><span class="pote-v"></span><div class="pote-bts"></div>');
+    c.style.setProperty('--cp', x.cor);
+    cx[x.id] = c; grade.appendChild(c);
+    if (x.id === p.auto) { $('.pote-bts', c).innerHTML = '<small class="pote-auto">fica com o que sobrar</small>'; return; }
+    const menos = el('button', 'pm', '−'); menos.type = 'button'; menos.setAttribute('aria-label', 'Tirar de ' + x.t);
+    const mais = el('button', 'pm', '+'); mais.type = 'button'; mais.setAttribute('aria-label', 'Colocar em ' + x.t);
+    menos.addEventListener('click', () => { if (travado) return; if (aloc[x.id] >= p.passo) { aloc[x.id] -= p.passo; Som.tocar('pop'); atualiza(); } });
+    mais.addEventListener('click', () => {
+      if (travado) return;
+      if (manuais() + p.passo <= p.total) { aloc[x.id] += p.passo; Som.tocar('moeda'); atualiza(); }
+      else { tremer(mao); Mascote.diz('O dinheiro acabou! Para colocar mais aqui, tire de outro pote.', 'neutro'); }
+    });
+    $('.pote-bts', c).appendChild(menos); $('.pote-bts', c).appendChild(mais);
+  });
+  const acoes = el('div', 'acoes');
+  const bOk = el('button', 'btn btn-verde', 'PRONTO!'); bOk.type = 'button';
+  bOk.addEventListener('click', () => {
+    if (travado) return;
+    const prob = p.regra(aloc); tent++;
+    if (!prob) { travado = true; fim({ nota: tent === 1 ? 1 : .5, explica: p.explica }); return; }
+    if (tent === 1) { Som.tocar('errado'); tremer(grade); Mascote.diz(prob + ' Tente de novo.', 'triste'); return; }
+    travado = true;
+    fim({ nota: 0, explica: prob + ' ' + (p.explica || '') });
+  });
+  acoes.appendChild(bOk);
+  palco.appendChild(mao); palco.appendChild(grade);
+  palco.appendChild(el('p', 'regra', p.regraTxt));
+  palco.appendChild(acoes);
+  atualiza();
+};
+
+/* --- Escolha livre (não vale ponto): por exemplo, escolher o sonho --- */
+W.escolher = function (p, palco, fim) {
+  const g = el('div', 'sonhos');
+  let feito = false;
+  p.ops.forEach((o, i) => {
+    const b = el('button', 'sonho', '<span class="sonho-e">' + o.e + '</span><b>' + o.t + '</b>' + (o.p ? '<span class="preco">' + fmt(o.p) + '</span>' : ''));
+    b.type = 'button';
+    b.addEventListener('click', () => { if (feito) return; feito = true; Som.tocar('certo'); fim({ nota: 1, escolha: o, indice: i }); });
+    g.appendChild(b);
+  });
+  palco.appendChild(g);
+};
+
+;
+/* ===== FASE 1 · Conhecendo o dinheiro ===== */
+const FASES = [];
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const FATOS = {
+  5: 'Ela é cor de cobre. Vinte moedas dessas formam 1 real.',
+  10: 'Ela é dourada e é a menor de todas. Dez moedas dessas formam 1 real.',
+  25: 'Ela é dourada. Quatro moedas dessas formam 1 real.',
+  50: 'Ela é prateada. Duas moedas dessas formam 1 real.',
+  100: 'Ela tem duas cores: dourada por fora e prateada por dentro.',
+  200: 'Ela é azul e traz uma tartaruga-marinha.',
+  500: 'Ela é roxa e traz uma garça.',
+  1000: 'Ela é vermelha e traz uma arara.',
+  2000: 'Ela é amarela e traz um mico-leão-dourado.',
+  5000: 'Ela traz uma onça-pintada.',
+  10000: 'Ela é azul e traz um peixe chamado garoupa.',
+  20000: 'Ela é cinza e traz um lobo-guará. É a nota de maior valor do Real.'
+};
+const ARTIGO = { 200: 'a', 500: 'a', 1000: 'a', 2000: 'o', 5000: 'a', 10000: 'a', 20000: 'o' };
+
+const F1 = {
+  identifica(ano) {
+    const v = pick(ano === 3 ? [5, 10, 25, 50, 100, 200, 500, 1000] : [25, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000]);
+    const fam = v >= 200 ? NOTAS : MOEDAS;
+    return {
+      tipo: 'mc', fala: 'Olhe bem! Quanto vale ' + (v >= 200 ? 'esta nota' : 'esta moeda') + '?', visual: din(v, 92),
+      ops: opsValor(v, fam.filter(x => x !== v), nomeValor), explica: 'Esta é a <b>' + rotuloDin(v) + '</b>. ' + FATOS[v]
+    };
+  },
+  bicho() {
+    const v = pick(NOTAS), outros = sample(NOTAS.filter(x => x !== v), 3);
+    const r = x => NOTA[x].e + ' ' + cap(NOTA[x].bicho);
+    return {
+      tipo: 'mc', fala: 'Cada nota do Real mostra um animal do Brasil. Qual animal aparece na nota de <b>' + fmt(v) + '</b>?',
+      ops: shuffle([{ t: r(v), ok: true }].concat(outros.map(x => ({ t: r(x) })))),
+      explica: 'Na nota de ' + fmt(v) + ' aparece ' + ARTIGO[v] + ' <b>' + NOTA[v].bicho + '</b>.' + grupoDin([v]) + 'As notas lembram que a natureza do Brasil também é uma riqueza para cuidar.'
+    };
+  },
+  toque(ano) {
+    if (ano === 5) {
+      const g = pick([
+        { alvo: 100, ok: [50, 25, 25], no: [[50, 25, 10], [25, 25, 25], [50, 50, 10]] },
+        { alvo: 200, ok: [100, 50, 50], no: [[100, 50, 25], [100, 100, 25], [50, 50, 50]] },
+        { alvo: 150, ok: [100, 25, 25], no: [[100, 25, 10], [50, 50, 25], [100, 50, 10]] },
+        { alvo: 500, ok: [200, 200, 100], no: [[200, 100, 100], [200, 200, 50], [500, 100]] },
+        { alvo: 1000, ok: [500, 200, 200, 100], no: [[500, 200, 200], [500, 500, 100], [500, 200, 100, 100]] },
+        { alvo: 75, ok: [50, 25], no: [[50, 10, 10], [25, 25, 10], [50, 25, 5]] }
+      ]);
+      const op = (l, ok) => ({ t: grupoDin(l, 36), img: true, ok: ok, rotulo: l.map(rotuloDin).join(', ') });
+      return {
+        tipo: 'mc', fala: 'Qual grupo forma exatamente <b>' + fmt(g.alvo) + '</b>? Some com atenção!',
+        ops: shuffle([op(g.ok, true)].concat(g.no.map(l => op(l, false)))),
+        explica: 'Somando ' + g.ok.map(fmt).join(' + ') + ' chegamos a <b>' + fmt(g.alvo) + '</b>. O mesmo valor pode ser formado de vários jeitos.'
+      };
+    }
+    const fam = ano === 3 ? MOEDAS : NOTAS, v = pick(fam), outros = sample(fam.filter(x => x !== v), 3);
+    const op = (x, ok) => ({ t: din(x), img: true, ok: ok, rotulo: 'Opção com uma ' + (x >= 200 ? 'nota' : 'moeda') });
+    return {
+      tipo: 'mc', fala: 'Toque na <b>' + rotuloDin(v) + '</b>.',
+      ops: shuffle([op(v, true)].concat(outros.map(x => op(x, false)))),
+      explica: 'Esta é a <b>' + rotuloDin(v) + '</b>. ' + FATOS[v]
+    };
+  },
+  conta(ano) {
+    let l;
+    if (ano === 3) l = pick([[100, 100], [200, 100], [50, 50], [100, 50], [500, 200], [200, 200, 100], [100, 50, 50], [1000, 500], [500, 100, 100], [200, 50, 50], [50, 25, 25]]);
+    else if (ano === 4) l = sample([200, 500, 1000, 2000], rnd(1, 2)).concat(sample([25, 50, 100], 2));
+    else l = sample([200, 500, 1000, 2000, 5000], 2).concat([pick([50, 100]), pick([10, 25]), pick([5, 10, 25])]);
+    l = l.slice().sort((a, b) => b - a);
+    const s = soma(l), menor = l[l.length - 1];
+    return {
+      tipo: 'mc', fala: 'Quanto dinheiro tem aqui? Some tudo!', visual: grupoDin(l),
+      ops: opsValor(s, [s + menor, s - menor, s + 100, s - 100, s + l[0], s + 50]),
+      explica: 'Somando: ' + l.map(fmt).join(' + ') + ' = <b>' + fmt(s) + '</b>.'
+    };
+  },
+  monta(ano) {
+    const cfg = ano === 3 ? { v: [300, 400, 250, 350, 600, 700, 150, 450], b: [200, 100, 50] }
+      : ano === 4 ? { v: [875, 1350, 1725, 925, 2250, 1575, 1150], b: [1000, 500, 200, 100, 50, 25] }
+        : { v: [3785, 4690, 2835, 5345, 6415, 1965], b: [2000, 1000, 500, 200, 100, 50, 25, 10, 5] };
+    const alvo = pick(cfg.v);
+    return {
+      tipo: 'montar', alvo: alvo, bandeja: cfg.b, mostraSoma: ano < 5,
+      fala: 'Agora é com você! Monte <b>' + fmt(alvo) + '</b> usando as notas e as moedas.',
+      explica: ' Existem vários jeitos de formar o mesmo valor com notas e moedas diferentes.'
+    };
+  },
+  troca(ano) {
+    if (ano === 3) {
+      const par = pick([[[50, 50, 50], [100, 25]], [[200], [100, 50, 25]], [[25, 25, 25, 25], [50, 25, 10]], [[100, 100, 50], [200, 25]], [[500], [200, 200, 50]], [[50, 50], [100, 10]]]);
+      const a = soma(par[0]), b = soma(par[1]);
+      const op = (l, ok) => ({ t: grupoDin(l, 40), img: true, ok: ok, rotulo: 'Grupo com ' + l.length + (l.length === 1 ? ' peça' : ' peças') });
+      return {
+        tipo: 'mc', fala: 'Qual grupo <b>vale mais</b>? Some cada um antes de escolher.',
+        ops: shuffle([op(par[0], a > b), op(par[1], b > a)]),
+        explica: 'Um grupo tem ' + fmt(a) + ' e o outro tem ' + fmt(b) + '. Então <b>' + fmt(Math.max(a, b)) + '</b> vale mais. Ter mais peças não quer dizer ter mais dinheiro!'
+      };
+    }
+    if (ano === 4) {
+      const q = pick([
+        { p: 25, t: 100, n: 4 }, { p: 10, t: 100, n: 10 }, { p: 5, t: 50, n: 10 }, { p: 200, t: 1000, n: 5 },
+        { p: 50, t: 500, n: 10 }, { p: 500, t: 2000, n: 4 }, { p: 25, t: 200, n: 8 }, { p: 1000, t: 5000, n: 5 }
+      ]);
+      const nota = q.p >= 200, suf = n => (nota ? (n === 1 ? 'nota' : 'notas') : (n === 1 ? 'moeda' : 'moedas'));
+      return {
+        tipo: 'mc', fala: 'Quantas ' + (nota ? 'notas' : 'moedas') + ' de <b>' + nomeValor(q.p) + '</b> formam <b>' + fmt(q.t) + '</b>?',
+        visual: din(q.p, 80), ops: opsNum(q.n, [q.n - 1, q.n + 1, q.n * 2, q.n + 2, Math.round(q.n / 2)], suf),
+        explica: q.n + ' × ' + nomeValor(q.p) + ' = <b>' + fmt(q.t) + '</b>. Trocar dinheiro por outro de mesmo valor é uma troca justa.'
+      };
+    }
+    const v = pick([375, 890, 1250, 765, 1850, 3600, 4500]);
+    const jeito = decompor(v, MOEDAS.concat(NOTAS)), n = jeito.length;
+    return {
+      tipo: 'mc', fala: 'Qual é a <b>menor quantidade</b> de notas e moedas para formar <b>' + fmt(v) + '</b>?',
+      visual: '<span class="rot">Valor</span><b class="alvo">' + fmt(v) + '</b>',
+      ops: opsNum(n, [n - 1, n + 1, n + 2, n - 2], k => (k === 1 ? 'peça' : 'peças')),
+      explica: 'O segredo é começar pelas notas e moedas de maior valor. Com <b>' + n + ' peças</b> fica assim:' + grupoDin(jeito)
+    };
+  }
+};
+
+FASES.push({
+  n: 1, nome: 'Conhecendo o dinheiro', ic: din(100), cor: 'var(--laranja)', cor2: 'var(--laranja-esc)',
+  intro: 'Vamos conhecer o <b>Real</b>, o dinheiro do Brasil!',
+  resumo: 'Descubra o valor das moedas e das notas, some os valores e monte quantias.',
+  montar(ano) {
+    return {
+      ctx: {},
+      passos: [ano === 5 ? F1.bicho() : F1.identifica(ano), F1.toque(ano), F1.conta(ano), F1.monta(ano), F1.troca(ano)]
+    };
+  }
+});
+
+;
+/* ===== FASE 2 · Mercado inteligente ===== */
+/* Preços em centavos: [3º ano, 4º ano, 5º ano]. doce = tentação fora da lista. */
+const PRODUTOS = [
+  { id: 'pao', e: '🍞', t: 'Pão', p: [200, 250, 275], sg: 'pão', pl: 'pães' },
+  { id: 'leite', e: '🥛', t: 'Leite', p: [400, 450, 480], sg: 'caixa de leite', pl: 'caixas de leite' },
+  { id: 'banana', e: '🍌', t: 'Banana', p: [300, 350, 325], sg: 'cacho de banana', pl: 'cachos de banana' },
+  { id: 'maca', e: '🍎', t: 'Maçã', p: [100, 150, 190], sg: 'maçã', pl: 'maçãs' },
+  { id: 'queijo', e: '🧀', t: 'Queijo', p: [600, 650, 690], sg: 'queijo', pl: 'queijos' },
+  { id: 'ovos', e: '🥚', t: 'Ovos', p: [500, 550, 560], sg: 'caixa de ovos', pl: 'caixas de ovos' },
+  { id: 'arroz', e: '🍚', t: 'Arroz', p: [500, 600, 625], sg: 'pacote de arroz', pl: 'pacotes de arroz' },
+  { id: 'tomate', e: '🍅', t: 'Tomate', p: [300, 250, 340], sg: 'tomate', pl: 'tomates' },
+  { id: 'cenoura', e: '🥕', t: 'Cenoura', p: [200, 150, 215], sg: 'cenoura', pl: 'cenouras' },
+  { id: 'laranja', e: '🍊', t: 'Laranja', p: [200, 300, 285], sg: 'laranja', pl: 'laranjas' },
+  { id: 'suco', e: '🥤', t: 'Suco', p: [300, 350, 360], sg: 'suco', pl: 'sucos' },
+  { id: 'choco', e: '🍫', t: 'Chocolate', p: [400, 450, 470], doce: true },
+  { id: 'biscoito', e: '🍪', t: 'Biscoito', p: [200, 250, 240], doce: true },
+  { id: 'sorvete', e: '🍦', t: 'Sorvete', p: [500, 550, 590], doce: true },
+  { id: 'pirulito', e: '🍭', t: 'Pirulito', p: [100, 150, 125], doce: true }
+];
+function produtosDoAno(ano) { return PRODUTOS.map(x => ({ id: x.id, e: x.e, t: x.t, p: x.p[ano - 3], doce: x.doce, sg: x.sg, pl: x.pl })); }
+function cupom(itens, total, pago, quem) {
+  return '<div class="cupom">' + itens.map(x => '<div class="cupom-l"><span>' + x.e + ' ' + x.t + '</span><b>' + fmt(x.p) + '</b></div>').join('') +
+    '<div class="cupom-total"><span>TOTAL</span><b>' + (total == null ? '?' : fmt(total)) + '</b></div></div>' +
+    (pago ? '<div class="pago"><span class="rot">' + (quem || 'Você pagou com') + '</span>' + din(pago, 64) + '</div>' : '');
+}
+
+const F2 = {
+  compara(ano) {
+    const ps = produtosDoAno(ano).filter(x => !x.doce), x = pick(ps);
+    if (ano === 3) {
+      if (Math.random() < .5) {
+        const a = rnd(3, 8) * 100, b = a + pick([-200, -100, 100, 200]);
+        return {
+          tipo: 'mc', fala: 'O mesmo produto tem preços diferentes em dois mercados. Onde é <b>mais barato</b>?',
+          visual: '<div><span class="grande">' + x.e + '</span><br>' + x.t + '</div><div>Mercado A<br><span class="preco">' + fmt(a) + '</span></div><div>Mercado B<br><span class="preco">' + fmt(b) + '</span></div>', visualCls: 'lado',
+          ops: [{ t: 'Mercado A', ok: a < b }, { t: 'Mercado B', ok: b < a }, { t: 'É igual nos dois' }], cols: 1,
+          explica: fmt(Math.min(a, b)) + ' é menos que ' + fmt(Math.max(a, b)) + '. Comparando os preços, você economiza <b>' + fmt(Math.abs(a - b)) + '</b>.'
+        };
+      }
+      const quatro = sample(ps, 4), menor = quatro.slice().sort((m, n) => m.p - n.p);
+      if (menor[0].p === menor[1].p) menor[0].p -= 50;
+      return {
+        tipo: 'mc', fala: 'Toque no produto <b>mais barato</b>.',
+        ops: quatro.map(q => ({ t: '<span class="prod-e">' + q.e + '</span><span>' + q.t + '</span><span class="preco">' + fmt(q.p) + '</span>', img: true, ok: q === menor[0] })),
+        explica: 'O produto mais barato é <b>' + menor[0].t + '</b>, que custa ' + fmt(menor[0].p) + '. Olhar o preço antes de pegar é o primeiro passo para economizar.'
+      };
+    }
+    if (ano === 4) {
+      const tipo = rnd(1, 3);
+      if (tipo === 1) {
+        const n = rnd(2, 4), tot = x.p * n;
+        return {
+          tipo: 'mc', fala: 'Cada <b>' + x.sg + '</b> custa <b>' + fmt(x.p) + '</b>. Quanto custam <b>' + n + ' ' + x.pl + '</b>?',
+          visual: '<span class="grande">' + new Array(n + 1).join(x.e) + '</span>',
+          ops: opsValor(tot, [tot + x.p, tot - x.p, x.p + n * 100, tot + 100, tot - 50]),
+          explica: n + ' × ' + fmt(x.p) + ' = <b>' + fmt(tot) + '</b>. Multiplicar ajuda a saber o total antes de chegar ao caixa.'
+        };
+      }
+      if (tipo === 2) {
+        const b = x.p, a = b + pick([100, 150, 200, 250]);
+        return {
+          tipo: 'mc', fala: 'O mesmo produto custa <b>' + fmt(a) + '</b> no Mercado A e <b>' + fmt(b) + '</b> no Mercado B. Quanto você <b>economiza</b> comprando no B?',
+          visual: '<div><span class="grande">' + x.e + '</span><br>' + x.t + '</div><div>Mercado A<br><span class="preco">' + fmt(a) + '</span></div><div>Mercado B<br><span class="preco">' + fmt(b) + '</span></div>', visualCls: 'lado',
+          ops: opsValor(a - b, [a - b + 50, a - b + 100, a + b, b]),
+          explica: fmt(a) + ' − ' + fmt(b) + ' = <b>' + fmt(a - b) + '</b>. Pesquisar preços antes de comprar faz o dinheiro render mais.'
+        };
+      }
+      const un = pick([250, 300, 350]), pac = un * 2 - pick([50, 100]);
+      return {
+        tipo: 'mc', fala: 'Você quer levar <b>2 sucos</b>. Cada um sozinho custa <b>' + fmt(un) + '</b>. O pacote com 2 custa <b>' + fmt(pac) + '</b>. Qual é a melhor escolha?',
+        visual: '<span class="grande">🥤🥤</span>', cols: 1,
+        ops: shuffle([{ t: 'O pacote com 2: economizo ' + fmt(un * 2 - pac), ok: true }, { t: 'Dois sozinhos: economizo ' + fmt(un * 2 - pac) }, { t: 'Tanto faz: o preço é igual' }]),
+        explica: 'Dois sozinhos custam 2 × ' + fmt(un) + ' = ' + fmt(un * 2) + '. O pacote custa ' + fmt(pac) + '. Então o pacote economiza <b>' + fmt(un * 2 - pac) + '</b>.'
+      };
+    }
+    const tipo = rnd(1, 4);
+    if (tipo === 1) {
+      const a = pick([600, 700, 800]), b = a * 2 - pick([200, 300]);
+      return {
+        tipo: 'mc', fala: 'Suco A: <b>1 litro</b> por <b>' + fmt(a) + '</b>. Suco B: <b>2 litros</b> por <b>' + fmt(b) + '</b>. Em qual o litro sai mais barato?',
+        visual: '<span class="grande">🥤</span>', cols: 1,
+        ops: shuffle([{ t: 'Suco B: cada litro sai por ' + fmt(b / 2), ok: true }, { t: 'Suco A: cada litro sai por ' + fmt(a) + ', o menor preço' }, { t: 'Os dois têm o mesmo preço por litro' }]),
+        explica: 'No suco B, ' + fmt(b) + ' ÷ 2 = ' + fmt(b / 2) + ' por litro, menos que ' + fmt(a) + '. Para comparar embalagens de tamanhos diferentes, calcule o preço de <b>cada unidade</b>.'
+      };
+    }
+    if (tipo === 2) {
+      const cheio = pick([2000, 3000, 4000, 5000, 8000]), pc = pick([10, 25, 50]), desc = cheio * pc / 100;
+      return {
+        tipo: 'mc', fala: 'Promoção! Um produto de <b>' + fmt(cheio) + '</b> está com <b>' + pc + '% de desconto</b>. Quanto ele custa agora?',
+        visual: '<span class="grande">🏷️</span><span class="preco">−' + pc + '%</span>',
+        ops: opsValor(cheio - desc, [desc, cheio - pc * 100, cheio + desc, cheio - desc - 100, cheio - desc + 100]),
+        explica: pc + '% de ' + fmt(cheio) + ' é ' + fmt(desc) + ' (' + ({ 10: 'a décima parte', 25: 'a quarta parte', 50: 'a metade' })[pc] + '). ' + fmt(cheio) + ' − ' + fmt(desc) + ' = <b>' + fmt(cheio - desc) + '</b>.'
+      };
+    }
+    if (tipo === 3) {
+      const un = pick([300, 350, 400]), pac = un * 4 - pick([200, 300, 400]);
+      return {
+        tipo: 'mc', fala: 'Você precisa de <b>4 iogurtes</b>. Cada um custa <b>' + fmt(un) + '</b>. A bandeja com 4 custa <b>' + fmt(pac) + '</b>. Quanto você economiza levando a bandeja?',
+        visual: '<span class="grande">🥛🥛🥛🥛</span>',
+        ops: opsValor(un * 4 - pac, [pac, un, un * 4, un * 4 - pac + 100, un * 4 - pac + 50]),
+        explica: '4 × ' + fmt(un) + ' = ' + fmt(un * 4) + '. A bandeja custa ' + fmt(pac) + '. Diferença: <b>' + fmt(un * 4 - pac) + '</b>. Só vale a pena se você realmente for usar os 4!'
+      };
+    }
+    const un = pick([350, 450, 480, 520]);
+    return {
+      tipo: 'mc', fala: 'Oferta “<b>leve 3, pague 2</b>”: cada chocolate custa <b>' + fmt(un) + '</b>. Quanto você paga levando 3?',
+      visual: '<span class="grande">🍫🍫🍫</span>',
+      ops: opsValor(un * 2, [un * 3, un, un * 2 + 100, un * 2 - 100]),
+      explica: 'Você leva 3 e paga só 2: 2 × ' + fmt(un) + ' = <b>' + fmt(un * 2) + '</b>. Mas atenção: oferta só é economia quando você já ia comprar o produto.'
+    };
+  },
+  ultimo(ano) {
+    const ps = produtosDoAno(ano).filter(x => !x.doce);
+    if (ano === 3) {
+      const dois = sample(ps, 2), tot = dois[0].p + dois[1].p;
+      return {
+        tipo: 'montar', alvo: tot, bandeja: [500, 200, 100], mostraSoma: true, ocultaAlvo: true,
+        visual: cupom(dois, null),
+        fala: 'Hora de pagar! Some os preços e separe o dinheiro <b>certinho</b> para essa compra.',
+        explica: ' Pagar o valor certinho é bom: você não precisa esperar o troco.'
+      };
+    }
+    const x = pick(ps), n = ano === 4 ? 2 : 3, tot = x.p * n;
+    const pago = [500, 1000, 2000, 5000].filter(v => v > tot)[0], troco = pago - tot;
+    return {
+      tipo: 'mc', fala: 'Você comprou <b>' + n + ' ' + x.pl + '</b>. Cada unidade custa <b>' + fmt(x.p) + '</b>. Você pagou com uma nota de <b>' + fmt(pago) + '</b>. Qual é o troco?',
+      visual: '<span class="grande">' + new Array(n + 1).join(x.e) + '</span>' + din(pago, 60),
+      ops: opsValor(troco, [tot, pago - x.p, troco + 100, troco - 100, troco + 50]),
+      explica: 'Primeiro o total: ' + n + ' × ' + fmt(x.p) + ' = ' + fmt(tot) + '. Depois o troco: ' + fmt(pago) + ' − ' + fmt(tot) + ' = <b>' + fmt(troco) + '</b>.'
+    };
+  }
+};
+
+FASES.push({
+  n: 2, nome: 'Mercado inteligente', ic: '🛒', cor: 'var(--menta)', cor2: 'var(--menta-esc)',
+  intro: 'Vamos às compras! No mercado, quem pensa antes <b>gasta melhor</b>.',
+  resumo: 'Siga a lista de compras, some os preços, confira o troco e compare antes de comprar.',
+  montar(ano) {
+    const ps = produtosDoAno(ano), bons = ps.filter(x => !x.doce), doces = ps.filter(x => x.doce);
+    const n = ano === 3 ? 2 : 3;
+    const compra = sample(bons, n);
+    const resto = sample(bons.filter(x => compra.indexOf(x) < 0), 6 - n - 2).concat(sample(doces, 2));
+    const total = soma(compra.map(x => x.p));
+    const pago = [500, 1000, 2000, 5000].filter(v => v > total)[0], troco = pago - total;
+    const passos = [
+      {
+        tipo: 'carrinho', lista: compra.map(x => x.id), prateleira: shuffle(compra.concat(resto)),
+        fala: 'Leve para o carrinho <b>só o que está na lista</b>. Arraste ou toque nos produtos.',
+        explica: 'Fazer uma lista e seguir o que está nela evita comprar por impulso e gastar com o que você não precisa.'
+      },
+      {
+        tipo: 'mc', fala: 'Agora some os preços. <b>Quanto custa a compra toda?</b>', visual: cupom(compra, null),
+        ops: opsValor(total, [total + 100, total - 100, total + 50, total - compra[0].p, total + compra[n - 1].p]),
+        explica: 'Somando: ' + compra.map(x => fmt(x.p)).join(' + ') + ' = <b>' + fmt(total) + '</b>.'
+      },
+      ano === 3 ? {
+        tipo: 'mc', fala: 'A compra custou <b>' + fmt(total) + '</b>. Você pagou com uma nota de <b>' + fmt(pago) + '</b>. Qual é o troco?',
+        visual: cupom(compra, total, pago), visualCls: 'lado',
+        ops: opsValor(troco, [total, troco + 100, troco - 100, pago, troco + 200]),
+        explica: 'Troco é o dinheiro que volta quando pagamos com um valor maior: ' + fmt(pago) + ' − ' + fmt(total) + ' = <b>' + fmt(troco) + '</b>. Sempre confira o seu troco!'
+      } : {
+        tipo: 'montar', alvo: troco, ocultaAlvo: true, mostraSoma: ano < 5, visual: cupom(compra, total, pago, 'O cliente pagou com'), visualCls: 'lado',
+        bandeja: ano === 4 ? [1000, 500, 200, 100, 50] : [1000, 500, 200, 100, 50, 25, 10, 5],
+        fala: 'Agora você é o caixa! A compra custou <b>' + fmt(total) + '</b> e o cliente pagou com <b>' + fmt(pago) + '</b>. Monte o <b>troco</b>.',
+        explica: ' Troco: ' + fmt(pago) + ' − ' + fmt(total) + ' = <b>' + fmt(troco) + '</b>. Sempre confira o seu troco!'
+      },
+      F2.compara(ano),
+      F2.ultimo(ano)
+    ];
+    return { ctx: {}, passos: passos };
+  }
+});
+
+;
+/* ===== FASE 3 · Necessidade ou desejo? ===== */
+const CESTOS_ND = [
+  { id: 'n', t: 'NECESSIDADE', sub: 'Preciso para viver bem', ic: '🏠', cor: 'var(--azul)', cor2: 'var(--azul-esc)' },
+  { id: 'd', t: 'DESEJO', sub: 'Quero, mas posso viver sem', ic: '✨', cor: 'var(--uva)', cor2: 'var(--uva-esc)' }
+];
+const ND = {
+  n: [
+    { e: '🍚', t: 'Arroz e feijão', pq: 'comida dá energia para o corpo. É necessidade.' },
+    { e: '💧', t: 'Água', pq: 'ninguém vive sem água. É necessidade.' },
+    { e: '💊', t: 'Remédio', pq: 'cuidar da saúde é necessidade.' },
+    { e: '👕', t: 'Roupa', pq: 'a roupa protege o corpo. É necessidade.' },
+    { e: '🏡', t: 'Casa para morar', pq: 'todos precisam de um lugar para morar. É necessidade.' },
+    { e: '📓', t: 'Caderno da escola', pq: 'material escolar serve para estudar. É necessidade.' },
+    { e: '🥛', t: 'Leite', pq: 'alimento faz parte das necessidades.' },
+    { e: '🍎', t: 'Frutas', pq: 'comida saudável é necessidade.' },
+    { e: '🚿', t: 'Sabonete', pq: 'higiene cuida da saúde. É necessidade.' },
+    { e: '👓', t: 'Óculos de grau', pq: 'quem precisa deles para enxergar tem uma necessidade.' },
+    { e: '🛏️', t: 'Cama para dormir', pq: 'descansar bem é necessidade.' }
+  ],
+  d: [
+    { e: '🍫', t: 'Chocolate', pq: 'é gostoso, mas dá para viver sem. É desejo.' },
+    { e: '🎮', t: 'Videogame', pq: 'diversão é boa, mas não é necessária para viver. É desejo.' },
+    { e: '🍭', t: 'Pirulito', pq: 'doce é vontade, não necessidade. É desejo.' },
+    { e: '🍦', t: 'Sorvete', pq: 'é uma delícia, mas dá para viver sem. É desejo.' },
+    { e: '⚽', t: 'Bola nova', pq: 'brincar é importante, mas a bola nova pode esperar. É desejo.' },
+    { e: '🤖', t: 'Robô de brinquedo', pq: 'brinquedo novo é desejo.' },
+    { e: '🃏', t: 'Figurinhas', pq: 'colecionar é divertido, mas é desejo.' },
+    { e: '🎧', t: 'Fone de ouvido', pq: 'é legal ter, mas dá para viver sem. É desejo.' },
+    { e: '🥤', t: 'Refrigerante', pq: 'para matar a sede existe a água. Refrigerante é desejo.' },
+    { e: '🕶️', t: 'Óculos da moda', pq: 'comprar só por causa da moda é desejo.' },
+    { e: '🧢', t: 'Boné novo', pq: 'é um enfeite que pode esperar. É desejo.' }
+  ],
+  sn: [
+    { e: '💡', t: 'Pagar a conta de luz', pq: 'sem pagar, a casa fica sem energia. É necessidade.' },
+    { e: '🚰', t: 'Pagar a conta de água', pq: 'água em casa é necessidade.' },
+    { e: '🏥', t: 'Comprar o remédio que o médico receitou', pq: 'saúde vem primeiro. É necessidade.' },
+    { e: '🚌', t: 'Pagar o ônibus para ir à escola', pq: 'chegar à escola é necessidade.' },
+    { e: '🛒', t: 'Fazer a feira da semana', pq: 'comprar comida é necessidade.' },
+    { e: '🔧', t: 'Consertar o chuveiro quebrado', pq: 'a casa precisa funcionar. É necessidade.' }
+  ],
+  sd: [
+    { e: '📱', t: 'Trocar de celular só porque saiu um novo', pq: 'se o antigo funciona, a troca é desejo.' },
+    { e: '🍕', t: 'Pedir pizza toda semana', pq: 'é gostoso, mas é desejo. Comida feita em casa mata a fome.' },
+    { e: '🎮', t: 'Comprar moedas em um jogo do celular', pq: 'gasto em jogo é desejo.' },
+    { e: '👟', t: 'Comprar outro tênis porque está na moda', pq: 'se já existe um tênis bom, o outro é desejo.' },
+    { e: '🎢', t: 'Ir ao parque de diversões', pq: 'passeio é ótimo, mas é desejo. Precisa caber no dinheiro.' },
+    { e: '🍬', t: 'Comprar balas todo dia na cantina', pq: 'balas são desejo, e todo dia o gasto fica grande.' }
+  ],
+  pares: [
+    [{ e: '👟', t: 'Tênis simples para a escola', pq: 'proteger os pés para ir à escola é necessidade.' }, { e: '👟', t: 'Tênis caro de marca famosa', pq: 'a marca famosa é desejo. Um tênis simples resolve a necessidade.' }],
+    [{ e: '💧', t: 'Água para beber', pq: 'água é necessidade.' }, { e: '🥤', t: 'Refrigerante todo dia', pq: 'é desejo. A sede se mata com água.' }],
+    [{ e: '👕', t: 'Casaco para o frio', pq: 'proteger-se do frio é necessidade.' }, { e: '🧢', t: 'Boné da moda', pq: 'a moda é desejo.' }],
+    [{ e: '📓', t: 'Caderno simples', pq: 'o caderno para estudar é necessidade.' }, { e: '✨', t: 'Capa brilhante mais cara', pq: 'o enfeite que encarece o caderno é desejo.' }],
+    [{ e: '🍎', t: 'Lanche para o recreio', pq: 'alimentar-se é necessidade.' }, { e: '🍬', t: 'Balas e chicletes todo dia', pq: 'guloseima todo dia é desejo.' }],
+    [{ e: '🚌', t: 'Ônibus para a escola', pq: 'transporte para estudar é necessidade.' }, { e: '🎢', t: 'Passeio no parque de diversões', pq: 'lazer pago é desejo e precisa ser planejado.' }]
+  ]
+};
+const F3 = {
+  usados: {},
+  tira(chave, qtd) { // sorteia sem repetir dentro da mesma partida
+    const livres = ND[chave].filter(x => !this.usados[chave + x.t]);
+    const s = sample(livres.length >= qtd ? livres : ND[chave], qtd);
+    s.forEach(x => { this.usados[chave + x.t] = true; });
+    return s.map(x => ({ e: x.e, t: x.t, pq: x.pq, c: chave.charAt(chave.length - 1) }));
+  },
+  rodada(fala, itens) {
+    return {
+      tipo: 'separar', cestos: CESTOS_ND, itens: itens, fala: fala,
+      explica: 'Necessidade é o que precisamos para viver bem: comida, água, saúde, moradia, roupa e estudo. Desejo é o que queremos, mas podemos viver sem.'
+    };
+  },
+  perguntas: {
+    3: [
+      { fala: 'A Lia tem <b>R$ 5,00</b>. Ela está com fome e também quer figurinhas. O que ela deve comprar <b>primeiro</b>?', ops: [{ t: '🥪 O lanche', ok: true }, { t: '🃏 As figurinhas' }, { t: 'Nenhum dos dois' }], explica: 'Primeiro vêm as necessidades, como matar a fome. Se sobrar dinheiro, aí vêm os desejos.' },
+      { fala: 'O que é uma <b>necessidade</b>?', ops: [{ t: 'Algo que eu preciso para viver bem', ok: true }, { t: 'Algo que eu quero só porque é legal' }, { t: 'Algo que eu vi na propaganda' }], explica: 'Necessidade é o que precisamos para viver bem: comida, água, casa, roupa, saúde e estudo.' },
+      { fala: 'O que é um <b>desejo</b>?', ops: [{ t: 'Algo que eu quero, mas posso viver sem', ok: true }, { t: 'Algo que eu preciso todo dia para viver' }, { t: 'Uma conta que a família precisa pagar' }], explica: 'Desejo é uma vontade. É gostoso realizar, mas ele pode esperar.' },
+      { fala: 'Está chovendo e o Pedro não tem capa nem guarda-chuva para ir à escola. Comprar uma capa de chuva é...', ops: [{ t: '🏠 Necessidade', ok: true }, { t: '✨ Desejo' }], explica: 'Proteger-se da chuva para chegar à escola é uma necessidade.' },
+      { fala: 'O Tito já tem 3 bolas boas e quer comprar mais uma. Comprar outra bola é...', ops: [{ t: '🏠 Necessidade' }, { t: '✨ Desejo', ok: true }], explica: 'Ele já tem bolas para brincar. Mais uma é só vontade: é um desejo.' },
+      { fala: 'O que a família deve comprar <b>primeiro</b>?', ops: [{ t: '🍚 Comida', ok: true }, { t: '🎮 Videogame' }, { t: '🍭 Doces' }, { t: '⚽ Bola' }], explica: 'A comida é necessidade e vem primeiro. O resto são desejos, que esperam sobrar dinheiro.' }
+    ],
+    4: [
+      { fala: 'A família da Ana tem <b>R$ 100,00</b> até o fim do mês. O que deve ser pago <b>primeiro</b>?', ops: [{ t: '💡 A conta de luz', ok: true }, { t: '🎮 Um jogo novo' }, { t: '🍕 Pizza no sábado' }, { t: '👟 Tênis da moda' }], explica: 'As contas e as necessidades vêm primeiro. Os desejos esperam sobrar dinheiro.' },
+      { fala: 'O Caio viu a propaganda de um brinquedo e agora diz que “precisa muito” dele. Isso é...', ops: [{ t: 'Um desejo criado pela propaganda', ok: true }, { t: 'Uma necessidade de verdade' }, { t: 'Uma conta da casa' }], explica: 'Propagandas são feitas para dar vontade de comprar. Antes de pedir, pergunte: eu preciso ou eu só quero?' },
+      { fala: 'Qual pergunta ajuda a decidir bem antes de comprar?', ops: [{ t: 'Eu preciso disso ou só quero?', ok: true }, { t: 'Meus amigos também têm?' }, { t: 'Isso está na moda?' }, { t: 'A embalagem é bonita?' }], explica: 'Perguntar “preciso ou quero?” é o primeiro passo do consumo consciente.' },
+      { fala: 'A mochila da Bia rasgou e não dá mais para usar. Comprar outra mochila é...', ops: [{ t: '🏠 Necessidade', ok: true }, { t: '✨ Desejo' }], explica: 'Ela precisa da mochila para levar o material à escola. É necessidade.' },
+      { fala: 'A mochila do Léo está boa, mas ele quer uma nova, do herói favorito. Isso é...', ops: [{ t: '🏠 Necessidade' }, { t: '✨ Desejo', ok: true }], explica: 'A mochila dele ainda funciona. Trocar só pelo desenho é desejo.' },
+      { fala: 'Ter desejos é ruim?', ops: [{ t: 'Não! Eles só precisam esperar as necessidades e caber no dinheiro', ok: true }, { t: 'Sim, ninguém deveria ter desejos' }, { t: 'Sim, só adultos podem ter desejos' }], explica: 'Ter desejos é normal. O segredo é planejar e guardar dinheiro para realizá-los.' }
+    ],
+    5: [
+      { fala: 'Tênis para ir à escola é necessidade. E um tênis de <b>R$ 400,00</b>, escolhido só por causa da marca?', ops: [{ t: 'É desejo: um tênis mais simples resolve a necessidade', ok: true }, { t: 'É necessidade: todo tênis é necessidade' }, { t: 'É necessidade: a marca cara protege mais o pé' }], explica: 'Uma compra pode misturar necessidade (proteger os pés) e desejo (a marca famosa). Consumo consciente é saber separar os dois.' },
+      { fala: 'A família tem <b>R$ 200,00</b>. As despesas são: água R$ 60,00, feira R$ 90,00 e cinema R$ 70,00. O que fazer?', ops: [{ t: 'Pagar a água e a feira, e deixar o cinema para depois', ok: true }, { t: 'Ir ao cinema, fazer a feira e deixar a água para depois' }, { t: 'Pagar tudo e ficar devendo R$ 20,00' }], explica: 'Água + feira = R$ 150,00: são necessidades. Sobram R$ 50,00, que não pagam o cinema. O desejo espera, ou a família escolhe um passeio mais barato.' },
+      { fala: 'O que é <b>consumo consciente</b>?', ops: [{ t: 'Comprar pensando: preciso? posso pagar? vou usar?', ok: true }, { t: 'Comprar tudo o que estiver em promoção' }, { t: 'Nunca comprar nada' }], explica: 'Consumir com consciência é pensar antes de comprar, evitar desperdício e cuidar do que já temos.' },
+      { fala: 'A Júlia precisa de um caderno. O simples custa <b>R$ 8,00</b>. O de capa brilhante custa <b>R$ 25,00</b>. Qual frase está certa?', ops: [{ t: 'O caderno é necessidade; a capa brilhante é desejo', ok: true }, { t: 'Os dois preços são necessidade' }, { t: 'Caderno é sempre um desejo' }], explica: 'Os dois servem para estudar. A diferença de R$ 17,00 paga só o desejo pela capa brilhante.' },
+      { fala: 'Um amigo diz: “Todo mundo tem, então eu também preciso ter!”. Como chamamos isso?', ops: [{ t: 'Pressão do grupo: é desejo, não necessidade', ok: true }, { t: 'Necessidade urgente' }, { t: 'Planejamento financeiro' }], explica: 'Querer algo só porque os outros têm é desejo. Quem decide o que é importante para você é você e sua família.' },
+      { fala: 'Qual é a melhor ordem para usar o dinheiro?', ops: [{ t: '1º necessidades, 2º guardar um pouco, 3º desejos', ok: true }, { t: '1º desejos, 2º necessidades, 3º guardar' }, { t: '1º desejos, 2º mais desejos, 3º o que sobrar' }], explica: 'Primeiro o que é necessário, depois uma parte guardada e só então os desejos. Assim o dinheiro não falta.' }
+    ]
+  }
+};
+
+FASES.push({
+  n: 3, nome: 'Necessidade ou desejo?', ic: '⚖️', cor: 'var(--azul)', cor2: 'var(--azul-esc)',
+  intro: 'Nem tudo o que eu <b>quero</b> é o que eu <b>preciso</b>. Vamos separar?',
+  resumo: 'Arraste cada figura para o lugar certo: NECESSIDADE (preciso para viver bem) ou DESEJO (quero, mas posso viver sem).',
+  montar(ano) {
+    F3.usados = {};
+    const ps = sample(F3.perguntas[ano], 2).map(q => ({ tipo: 'mc', fala: q.fala, ops: shuffle(q.ops), cols: q.ops.length === 3 ? 1 : 0, explica: q.explica }));
+    const mist = (a, b, qa, qb) => F3.tira(a, qa).concat(F3.tira(b, qb));
+    let r1, r2, r3;
+    const f1 = 'Arraste cada figura para o lugar certo. Se preferir, toque na figura e depois no lugar.';
+    const f2 = 'Mais uma rodada! Pense: <b>preciso</b> ou só <b>quero</b>?';
+    if (ano === 3) {
+      r1 = F3.rodada(f1, mist('n', 'd', 2, 2)); r2 = F3.rodada(f2, mist('n', 'd', 2, 2)); r3 = F3.rodada('Última rodada! Você já é craque.', mist('n', 'd', 3, 2));
+    } else if (ano === 4) {
+      r1 = F3.rodada(f1, mist('n', 'd', 3, 2));
+      r2 = F3.rodada('Agora são <b>situações</b> do dia a dia. Necessidade ou desejo?', mist('sn', 'sd', 2, 2));
+      r3 = F3.rodada('Última rodada, tudo misturado!', mist('n', 'd', 2, 1).concat(mist('sn', 'sd', 1, 2)));
+    } else {
+      r1 = F3.rodada(f1, mist('n', 'd', 3, 3));
+      r2 = F3.rodada('Agora são <b>situações</b> do dia a dia. Necessidade ou desejo?', mist('sn', 'sd', 3, 2));
+      const pares = sample(ND.pares, 3);
+      r3 = F3.rodada('Cuidado: coisas parecidas podem ser diferentes! Observe os detalhes.',
+        [].concat.apply([], pares.map(p => [{ e: p[0].e, t: p[0].t, pq: p[0].pq, c: 'n' }, { e: p[1].e, t: p[1].t, pq: p[1].pq, c: 'd' }])));
+    }
+    return { ctx: {}, passos: [r1, ps[0], r2, ps[1], r3] };
+  }
+});
+
+;
+/* ===== FASE 4 · Desafio da economia ===== */
+const CESTOS_ECO = [
+  { id: 'e', t: 'ECONOMIZA', sub: 'Faz o dinheiro render', ic: '💚', cor: 'var(--verde)', cor2: 'var(--verde-esc)' },
+  { id: 'g', t: 'DESPERDIÇA', sub: 'Joga dinheiro fora', ic: '💸', cor: 'var(--coral)', cor2: 'var(--coral-esc)' }
+];
+const POTES3 = [
+  { id: 'guardar', t: 'GUARDAR', ic: '🐷', cor: 'var(--rosa-esc)' },
+  { id: 'doar', t: 'DOAR', ic: '🤝', cor: 'var(--menta)' },
+  { id: 'gastar', t: 'GASTAR', ic: '🛒', cor: 'var(--azul)' }
+];
+const ECO = {
+  e: [
+    { e: '🚿', t: 'Tomar banho rápido', pq: 'gasta menos água e a conta fica menor.' },
+    { e: '💡', t: 'Apagar a luz ao sair', pq: 'menos energia gasta, conta de luz menor.' },
+    { e: '🚰', t: 'Fechar a torneira ao escovar os dentes', pq: 'água que não escorre à toa é dinheiro economizado.' },
+    { e: '📝', t: 'Fazer lista antes das compras', pq: 'a lista evita comprar o que não precisa.' },
+    { e: '🔎', t: 'Pesquisar o preço em várias lojas', pq: 'comparando, você paga menos pela mesma coisa.' },
+    { e: '🍱', t: 'Levar lanche de casa', pq: 'costuma sair mais barato do que comprar todo dia.' },
+    { e: '👕', t: 'Cuidar bem das roupas e do material', pq: 'o que dura mais não precisa ser comprado de novo.' },
+    { e: '♻️', t: 'Consertar antes de comprar outro', pq: 'reaproveitar poupa dinheiro e a natureza.' },
+    { e: '🐷', t: 'Guardar uma parte da mesada', pq: 'de pouquinho em pouquinho o cofrinho enche.' },
+    { e: '🍽️', t: 'Pôr no prato só o que vai comer', pq: 'comida que não vai para o lixo é economia.' }
+  ],
+  g: [
+    { e: '🚿', t: 'Deixar o chuveiro ligado à toa', pq: 'água e energia indo embora deixam a conta cara.' },
+    { e: '📺', t: 'Deixar a TV ligada sem ninguém ver', pq: 'é energia paga sem ser usada.' },
+    { e: '🛍️', t: 'Comprar por impulso, sem pensar', pq: 'compras sem pensar costumam virar arrependimento.' },
+    { e: '🗑️', t: 'Jogar comida boa no lixo', pq: 'é como jogar dinheiro fora.' },
+    { e: '✏️', t: 'Perder o material escolar', pq: 'tudo o que se perde precisa ser comprado de novo.' },
+    { e: '🍬', t: 'Gastar toda a mesada no primeiro dia', pq: 'o dinheiro acaba e o resto do mês fica sem nada.' },
+    { e: '🏷️', t: 'Comprar só porque está em promoção', pq: 'se você não precisava, não economizou: gastou.' },
+    { e: '🚰', t: 'Deixar a torneira pingando', pq: 'gota a gota, muita água paga vai embora.' }
+  ]
+};
+const FRACAO = { 10: 'a décima parte (dividir por 10)', 25: 'a quarta parte (dividir por 4)', 50: 'a metade (dividir por 2)', 75: 'três quartos (dividir por 4 e multiplicar por 3)' };
+
+const F4 = {
+  cena: {
+    3: [
+      { fala: 'Você ganhou <b>R$ 10,00</b> da vovó. Qual é a melhor ideia?', ops: [{ t: 'Guardar uma parte no cofrinho e usar o resto com cuidado', ok: true }, { t: 'Gastar tudo em doces hoje mesmo' }, { t: 'Deixar o dinheiro jogado em qualquer lugar' }], explica: 'Quem guarda um pouco de tudo o que ganha sempre tem dinheiro quando precisa.' },
+      { fala: 'O que quer dizer <b>economizar</b>?', ops: [{ t: 'Usar o dinheiro com cuidado e guardar uma parte', ok: true }, { t: 'Gastar tudo bem rápido' }, { t: 'Nunca comprar nada' }], explica: 'Economizar não é deixar de comprar. É pensar antes de gastar e guardar um pouco.' },
+      { fala: 'Onde é melhor guardar as suas moedas?', ops: [{ t: '🐷 No cofrinho', ok: true }, { t: 'No bolso da bermuda' }, { t: 'Espalhadas pela casa' }], explica: 'No cofrinho o dinheiro fica seguro e você vê as economias crescerem.' }
+    ],
+    4: [
+      { fala: 'Você ganha <b>R$ 20,00</b> de mesada por mês. Qual plano faz o dinheiro durar as 4 semanas?', ops: [{ t: 'Guardar R$ 8,00 e gastar R$ 3,00 por semana', ok: true }, { t: 'Gastar R$ 10,00 por semana' }, { t: 'Gastar tudo na primeira semana' }], explica: 'R$ 3,00 × 4 semanas = R$ 12,00. Com os R$ 8,00 guardados, dá R$ 20,00. Dividir o dinheiro pelo tempo evita que ele acabe antes da hora.' },
+      { fala: 'O Rui quer um jogo de <b>R$ 30,00</b>, mas só tem <b>R$ 12,00</b>. O que ele deve fazer?', ops: [{ t: 'Guardar um pouco toda semana até juntar', ok: true }, { t: 'Pedir emprestado e ficar devendo' }, { t: 'Desistir para sempre' }], explica: 'Faltam R$ 18,00. Guardando um pouco por semana ele chega lá sem ficar devendo.' },
+      { fala: 'Qual atitude ajuda a economizar no mercado?', ops: [{ t: 'Levar uma lista e comparar os preços', ok: true }, { t: 'Ir com fome e sem lista' }, { t: 'Pegar sempre a embalagem mais bonita' }], explica: 'Lista na mão e olho no preço: assim se compra o necessário pagando menos.' }
+    ],
+    5: [
+      { fala: 'A Mel recebe <b>R$ 50,00</b> por mês. Qual plano é o mais equilibrado?', ops: [{ t: 'Guardar R$ 10,00, usar R$ 30,00 no que precisa e R$ 10,00 em lazer', ok: true }, { t: 'Gastar os R$ 50,00 em lazer e não guardar nada' }, { t: 'Guardar os R$ 50,00 e não usar nem no que precisa' }], explica: 'Um bom plano tem lugar para as necessidades, para guardar e para o lazer. Nem gastar tudo, nem deixar de viver.' },
+      { fala: 'O que é uma <b>reserva de emergência</b>?', ops: [{ t: 'Dinheiro guardado para imprevistos, como um conserto', ok: true }, { t: 'Dinheiro para gastar em promoções' }, { t: 'Dinheiro emprestado de um amigo' }], explica: 'Imprevistos acontecem. Quem tem uma reserva resolve o problema sem ficar devendo.' },
+      { fala: 'Juntar dinheiro fica mais fácil quando você...', ops: [{ t: 'Tem um objetivo e guarda um pouco sempre', ok: true }, { t: 'Espera sobrar no fim do mês' }, { t: 'Guarda só quando ganha muito' }], explica: 'Quem espera sobrar quase nunca guarda. Separar a parte de guardar logo que recebe funciona melhor.' }
+    ]
+  },
+  conta1(ano) {
+    if (ano === 3) {
+      const t = pick([1000, 800, 2000, 1200]), g = pick([300, 400, 500, 600].filter(v => v < t));
+      return {
+        tipo: 'mc', fala: 'Você tinha <b>' + fmt(t) + '</b> e gastou <b>' + fmt(g) + '</b> no lanche. Quanto sobrou para guardar?',
+        visual: '<span class="grande">🥪</span>', ops: opsValor(t - g, [t + g, g, t - g + 100, t - g - 100]),
+        explica: fmt(t) + ' − ' + fmt(g) + ' = <b>' + fmt(t - g) + '</b>. O que sobra pode ir para o cofrinho!'
+      };
+    }
+    if (ano === 4) {
+      const w = pick([250, 350, 450, 500, 650]), n = rnd(3, 6);
+      return {
+        tipo: 'mc', fala: 'Você guarda <b>' + fmt(w) + '</b> toda semana. Quanto terá depois de <b>' + n + ' semanas</b>?',
+        visual: '<span class="grande">🐷</span>', ops: opsValor(w * n, [w * (n + 1), w * (n - 1), w + n * 100, w * n + 100, w * n - 50]),
+        explica: n + ' × ' + fmt(w) + ' = <b>' + fmt(w * n) + '</b>. Guardar sempre, mesmo que pouco, faz o dinheiro crescer.'
+      };
+    }
+    const x = pick([4000, 6000, 8000, 12000, 20000]), pc = pick([10, 25, 50, 75]), v = x * pc / 100;
+    return {
+      tipo: 'mc', fala: 'Você recebeu <b>' + fmt(x) + '</b> e decidiu guardar <b>' + pc + '%</b>. Quanto vai guardar?',
+      visual: '<span class="grande">🐷</span><span class="preco">' + pc + '%</span>',
+      ops: opsValor(v, [x - v, pc * 100, x / 2, v + 500, v - 200, x / 10].filter(k => k !== v)),
+      explica: pc + '% é ' + FRACAO[pc] + '. ' + pc + '% de ' + fmt(x) + ' = <b>' + fmt(v) + '</b>.'
+    };
+  },
+  potes(ano) {
+    if (ano === 3) {
+      const t = pick([800, 1000, 1200]);
+      return {
+        tipo: 'potes', total: t, passo: 100, potes: POTES3, auto: 'gastar',
+        fala: 'Você ganhou <b>' + fmt(t) + '</b>! Divida nos potes usando os botões <b>+</b> e <b>−</b>.',
+        regraTxt: 'Regra: guarde <b>pelo menos a metade</b>. Se quiser, doe um pouco.',
+        regra: a => (a.guardar >= t / 2 ? null : 'A metade de ' + fmt(t) + ' é <b>' + fmt(t / 2) + '</b>. O pote GUARDAR precisa ter esse valor ou mais.'),
+        explica: 'Separar primeiro o que vai guardar é um ótimo hábito. O que sobra, você gasta com calma.'
+      };
+    }
+    if (ano === 4) {
+      const c = pick([{ t: 2000, p: 200, g: 800, d: 200 }, { t: 3000, p: 500, g: 1000, d: 500 }, { t: 2400, p: 200, g: 1000, d: 400 }]);
+      return {
+        tipo: 'potes', total: c.t, passo: c.p, potes: POTES3, auto: 'gastar',
+        fala: 'Sua mesada de <b>' + fmt(c.t) + '</b> chegou! Separe o dinheiro antes de gastar.',
+        regraTxt: 'Regra: guarde <b>pelo menos ' + fmt(c.g) + '</b> e doe <b>pelo menos ' + fmt(c.d) + '</b>.',
+        regra: a => (a.guardar < c.g ? 'O pote GUARDAR precisa ter pelo menos <b>' + fmt(c.g) + '</b>.' : (a.doar < c.d ? 'O pote DOAR precisa ter pelo menos <b>' + fmt(c.d) + '</b>.' : null)),
+        explica: 'Guardar, doar e gastar: quando cada parte tem o seu lugar, o dinheiro rende mais e ainda ajuda alguém.'
+      };
+    }
+    const t = pick([4000, 6000, 8000]), pg = pick([25, 50]), g = t * pg / 100, d = t / 10;
+    return {
+      tipo: 'potes', total: t, passo: t / 20, potes: POTES3, auto: 'gastar',
+      fala: 'Você recebeu <b>' + fmt(t) + '</b>. Use porcentagem para dividir o dinheiro!',
+      regraTxt: 'Regra: guarde <b>exatamente ' + pg + '%</b> e doe <b>exatamente 10%</b>.',
+      regra: a => (a.guardar !== g ? pg + '% de ' + fmt(t) + ' é ' + FRACAO[pg] + '. Confira o pote GUARDAR.' : (a.doar !== d ? '10% de ' + fmt(t) + ' é ' + FRACAO[10] + '. Confira o pote DOAR.' : null)),
+      explica: pg + '% de ' + fmt(t) + ' = <b>' + fmt(g) + '</b> e 10% = <b>' + fmt(d) + '</b>. Sobram ' + fmt(t - g - d) + ' para gastar com consciência.'
+    };
+  },
+  conta2(ano) {
+    if (ano === 3) {
+      return pick([
+        { tipo: 'mc', cols: 1, fala: 'Seu lápis ficou pequeno, mas ainda escreve bem. O que fazer para economizar?', ops: shuffle([{ t: 'Continuar usando até acabar', ok: true }, { t: 'Jogar fora e pedir outro' }, { t: 'Esquecer no fundo da mochila' }]), explica: 'Usar as coisas até o fim evita compras desnecessárias. Isso também é economizar.' },
+        { tipo: 'mc', cols: 1, fala: 'Sobrou comida boa no almoço. O que é melhor fazer?', ops: shuffle([{ t: 'Guardar na geladeira para comer depois', ok: true }, { t: 'Jogar no lixo' }, { t: 'Deixar na mesa até estragar' }]), explica: 'Comida guardada vira outra refeição. Comida no lixo é dinheiro jogado fora.' },
+        (() => {
+          const a = rnd(3, 9) * 100, b = rnd(2, 6) * 100;
+          return { tipo: 'mc', fala: 'Seu cofrinho tinha <b>' + fmt(a) + '</b>. Você guardou mais <b>' + fmt(b) + '</b>. Quanto tem agora?', visual: '<span class="grande">🐷</span>', ops: opsValor(a + b, [a + b + 100, a + b - 100, a, Math.abs(a - b) || 100]), explica: fmt(a) + ' + ' + fmt(b) + ' = <b>' + fmt(a + b) + '</b>. Cada moeda guardada deixa o cofrinho mais cheio.' };
+        })()
+      ]);
+    }
+    if (ano === 4) {
+      const c = pick([500, 600, 700]), h = pick([200, 250, 300]), dias = 5, ec = (c - h) * dias;
+      return {
+        tipo: 'mc', fala: 'O lanche na cantina custa <b>' + fmt(c) + '</b>. Levar de casa custa <b>' + fmt(h) + '</b>. Quanto você economiza em <b>' + dias + ' dias</b> levando de casa?',
+        visual: '<span class="grande">🍱</span>', ops: opsValor(ec, [c - h, c * dias, h * dias, ec + 250, ec - 250]),
+        explica: 'Por dia: ' + fmt(c) + ' − ' + fmt(h) + ' = ' + fmt(c - h) + '. Em ' + dias + ' dias: ' + dias + ' × ' + fmt(c - h) + ' = <b>' + fmt(ec) + '</b>. Pequenas economias, somadas, viram muito.'
+      };
+    }
+    const c = pick([{ a: 10000, n: 4, pa: 3000 }, { a: 12000, n: 5, pa: 2800 }, { a: 15000, n: 5, pa: 3500 }, { a: 20000, n: 4, pa: 6000 }, { a: 9000, n: 3, pa: 3400 }]);
+    const tot = c.n * c.pa, dif = tot - c.a;
+    return {
+      tipo: 'mc', fala: 'Uma bicicleta custa <b>' + fmt(c.a) + '</b> à vista, ou <b>' + c.n + ' parcelas de ' + fmt(c.pa) + '</b>. Quanto se paga <b>a mais</b> no parcelado?',
+      visual: '<span class="grande">🚲</span>', ops: opsValor(dif, [c.pa, tot, c.a - c.pa, dif + 1000, dif * 2]),
+      explica: 'Parcelado: ' + c.n + ' × ' + fmt(c.pa) + ' = ' + fmt(tot) + '. À vista: ' + fmt(c.a) + '. Diferença: <b>' + fmt(dif) + '</b>. Quem junta o dinheiro antes e paga à vista costuma pagar menos.'
+    };
+  }
+};
+
+FASES.push({
+  n: 4, nome: 'Desafio da economia', ic: '💡', cor: 'var(--verde)', cor2: 'var(--verde-esc)',
+  intro: 'Economizar é usar o dinheiro com <b>inteligência</b>. Vamos treinar?',
+  resumo: 'Decida o que fazer com o dinheiro que recebe, descubra atitudes que economizam e divida o dinheiro nos potes.',
+  montar(ano) {
+    const c = pick(F4.cena[ano]);
+    const k = ano === 3 ? 2 : 3;
+    const itens = sample(ECO.e, k).map(x => ({ e: x.e, t: x.t, pq: x.pq, c: 'e' })).concat(sample(ECO.g, ano === 5 ? 3 : 2).map(x => ({ e: x.e, t: x.t, pq: x.pq, c: 'g' })));
+    return {
+      ctx: {},
+      passos: [
+        { tipo: 'mc', fala: c.fala, ops: shuffle(c.ops), cols: 1, explica: c.explica },
+        { tipo: 'separar', cestos: CESTOS_ECO, itens: itens, fala: 'Essa atitude <b>economiza</b> ou <b>desperdiça</b>? Arraste para o lugar certo.', explica: 'Economizar também é cuidar da água, da energia, da comida e das coisas que já temos. Isso se chama consumo consciente.' },
+        F4.conta1(ano), F4.potes(ano), F4.conta2(ano)
+      ]
+    };
+  }
+});
+
+;
+/* ===== FASE 5 · Cofrinho dos sonhos ===== */
+/* Uma pequena história: escolher um sonho, planejar e guardar até chegar lá. */
+const F5 = {
+  3: {
+    meta: 2000, sonhos: [{ e: '⚽', t: 'Bola de futebol' }, { e: '🎨', t: 'Kit de pintura' }, { e: '🎲', t: 'Jogo de tabuleiro' }],
+    plano: { fala: 'Seu sonho custa <b>R$ 20,00</b>. Guardando <b>R$ 5,00</b> por semana, em quantas semanas você consegue?', n: 4, erradas: [2, 3, 5, 6], suf: 'semanas', explica: '4 × R$ 5,00 = R$ 20,00. Com um plano, você sabe quando o sonho vai chegar.' },
+    d1: { fala: 'Semana 1: você ganhou <b>R$ 5,00</b> de mesada. Na cantina tem pirulito por R$ 2,00. O que você faz?', ops: [['Guardo os R$ 5,00 no cofrinho', 500, 1], ['Compro um pirulito e guardo R$ 3,00', 300, .5], ['Gasto tudo em pirulitos', 0, 0]] },
+    dep: { fala: 'Semana 2: você ajudou a vovó no jardim e ganhou <b>R$ 5,00</b>. Coloque esse valor no cofrinho!', v: 500, bandeja: [200, 100, 50] },
+    d2: { fala: 'Surpresa! A titia deu <b>R$ 10,00</b> de presente de aniversário. O que você faz?', ops: [['Guardo tudo no cofrinho', 1000, 1], ['Compro um brinquedo de R$ 6,00 e guardo R$ 4,00', 400, .5], ['Gasto tudo em doces', 0, 0]] }
+  },
+  4: {
+    meta: 6000, sonhos: [{ e: '🎧', t: 'Fone de ouvido' }, { e: '👟', t: 'Chuteira' }, { e: '🎮', t: 'Jogo novo' }],
+    plano: { fala: 'Seu sonho custa <b>R$ 60,00</b>. Guardando <b>R$ 12,00</b> por semana, em quantas semanas você consegue?', n: 5, erradas: [3, 4, 6, 10], suf: 'semanas', explica: 'R$ 60,00 ÷ R$ 12,00 = 5 semanas. Com um plano, você sabe quando o sonho vai chegar.' },
+    d1: { fala: 'Semana 1: sua mesada de <b>R$ 15,00</b> chegou. Na cantina, o lanche especial custa R$ 4,50. O que você faz?', ops: [['Guardo os R$ 15,00 no cofrinho', 1500, 1], ['Compro o lanche e guardo R$ 10,50', 1050, .5], ['Gasto tudo em lanches e figurinhas', 0, 0]] },
+    dep: { fala: 'Semana 2: você vendeu limonada e ganhou <b>R$ 12,50</b>. Coloque esse valor no cofrinho!', v: 1250, bandeja: [1000, 500, 200, 100, 50, 25] },
+    d2: { fala: 'No seu aniversário você ganhou <b>R$ 35,00</b>! O que você faz?', ops: [['Guardo tudo no cofrinho', 3500, 1], ['Compro um presente de R$ 10,00 para mim e guardo R$ 25,00', 2500, .5], ['Gasto tudo no shopping', 0, 0]] }
+  },
+  5: {
+    meta: 15000, sonhos: [{ e: '🚲', t: 'Bicicleta usada' }, { e: '🎸', t: 'Violão' }, { e: '⌚', t: 'Relógio' }],
+    plano: { fala: 'Seu sonho custa <b>R$ 150,00</b>. Sua mesada é de <b>R$ 60,00</b> por mês e você vai guardar <b>50%</b> dela. Em quantos meses você consegue?', n: 5, erradas: [3, 4, 6, 10], suf: 'meses', explica: '50% de R$ 60,00 é a metade: R$ 30,00 por mês. R$ 150,00 ÷ R$ 30,00 = 5 meses.' },
+    d1: { fala: 'Mês 1: você recebeu <b>R$ 60,00</b>. Saiu um jogo novo para celular por R$ 25,00. O que você faz?', ops: [['Guardo 50% (R$ 30,00), como planejei', 3000, 1], ['Compro o jogo e guardo só R$ 10,00', 1000, .5], ['Gasto tudo: jogo, lanches e figurinhas', 0, 0]] },
+    dep: { fala: 'Mês 2: você vendeu gibis usados e ganhou <b>R$ 37,75</b>. Coloque esse valor no cofrinho!', v: 3775, bandeja: [2000, 1000, 500, 200, 100, 50, 25, 10, 5] },
+    d2: { fala: 'No fim do ano você ganhou <b>R$ 90,00</b> dos seus padrinhos! O que você faz?', ops: [['Guardo tudo no cofrinho', 9000, 1], ['Guardo 50% e gasto os outros 50%', 4500, .5], ['Gasto tudo em presentes para mim', 0, 0]] }
+  },
+  decisao(d, ultima) {
+    return ctx => ({
+      tipo: 'mc', cols: 1, fala: d.fala,
+      ops: shuffle(d.ops.map(o => {
+        const novo = ctx.guardado + o[1];
+        const pq = !ultima ? (o[1] ? 'Você guardou ' + fmt(o[1]) + '.' : 'Nada foi para o cofrinho desta vez.')
+          : (novo >= ctx.meta ? 'O cofrinho chegou a <b>' + fmt(novo) + '</b>: dá para realizar o sonho!' : 'O cofrinho ficou com <b>' + fmt(novo) + '</b>. Ainda faltam ' + fmt(ctx.meta - novo) + '.');
+        return { t: o[0], ok: o[2] === 1, nota: o[2], guarda: o[1], pq: pq };
+      })),
+      explica: 'Quanto mais você guarda, mais rápido o sonho chega. Um agrado de vez em quando pode, mas ele atrasa o plano.',
+      aoTerminar: (res, c) => { c.guardado += res.escolha.guarda; }
+    });
+  }
+};
+
+FASES.push({
+  n: 5, nome: 'Cofrinho dos sonhos', ic: '🐷', cor: 'var(--rosa-esc)', cor2: 'var(--rosa-fundo)',
+  intro: 'Todo cofrinho precisa de um <b>sonho</b>! Guardando um pouco de cada vez, a gente chega lá.',
+  resumo: 'Escolha um sonho, faça um plano e tome boas decisões para encher o cofrinho até conseguir.',
+  montar(ano) {
+    const d = F5[ano];
+    const ctx = { meta: d.meta, guardado: 0, sonho: null, realizou: false };
+    const passos = [
+      {
+        tipo: 'escolher', pontua: false, fala: 'Qual destes sonhos você quer conquistar? Cada um custa <b>' + fmt(d.meta) + '</b>.',
+        ops: d.sonhos.map(s => ({ e: s.e, t: s.t, p: d.meta })),
+        aoTerminar: (res, c) => { c.sonho = res.escolha; }
+      },
+      { tipo: 'mc', fala: 'Primeiro, um plano! ' + d.plano.fala, ops: opsNum(d.plano.n, d.plano.erradas, d.plano.suf), explica: d.plano.explica },
+      F5.decisao(d.d1, false),
+      {
+        tipo: 'montar', alvo: d.dep.v, bandeja: d.dep.bandeja, mostraSoma: ano < 5, rotAlvo: 'Para o cofrinho', fala: d.dep.fala,
+        explica: ' Dinheiro extra também pode ir para o cofrinho. Ele já está guardado!',
+        aoTerminar: (res, c) => { c.guardado += d.dep.v; }
+      },
+      c => {
+        const falta = c.meta - c.guardado;
+        return {
+          tipo: 'mc', fala: 'Seu cofrinho tem <b>' + fmt(c.guardado) + '</b>. O sonho custa <b>' + fmt(c.meta) + '</b>. Quanto ainda falta?',
+          visual: '<span class="grande">🐷 ➜ ' + c.sonho.e + '</span>',
+          ops: opsValor(falta, [falta + 100, falta - 100, c.guardado, falta + (ano === 3 ? 200 : 50), falta + 1000]),
+          explica: fmt(c.meta) + ' − ' + fmt(c.guardado) + ' = <b>' + fmt(falta) + '</b>. Saber quanto falta ajuda a não desistir.'
+        };
+      },
+      F5.decisao(d.d2, true)
+    ];
+    return {
+      ctx: ctx, passos: passos,
+      hud: c => (c.sonho ? { e: c.sonho.e, pct: c.guardado / c.meta * 100, txt: fmt(c.guardado) + ' de ' + fmt(c.meta) } : null),
+      fim: c => {
+        c.realizou = c.guardado >= c.meta;
+        return c.realizou ? 'Você juntou ' + fmt(c.guardado) + ' e realizou o sonho: ' + c.sonho.e + ' ' + c.sonho.t + '!'
+          : 'Seu cofrinho ficou com ' + fmt(c.guardado) + '. Faltaram ' + fmt(c.meta - c.guardado) + ' para o sonho. Jogue de novo e guarde mais!';
+      }
+    };
+  }
+});
+
+;
+/* ===== FASE 6 · O desafio do orçamento ===== */
+const MATERIAL = [
+  { e: '📓', t: 'o caderno' }, { e: '👝', t: 'o estojo' }, { e: '📒', t: 'a agenda' }, { e: '🖍️', t: 'o giz de cera' },
+  { e: '✂️', t: 'a tesoura' }, { e: '📕', t: 'o livro' }, { e: '🎨', t: 'a tinta' }
+];
+const PLANOS = {
+  3: [
+    {
+      orc: 1200, fala: 'Você tem <b>R$ 12,00</b> para o lanche. Escolha o que comprar <b>sem passar do dinheiro</b>. O que tem a etiqueta PRECISA não pode faltar!',
+      itens: [{ e: '🥪', t: 'Sanduíche', p: 400, req: true }, { e: '🥤', t: 'Suco', p: 300, req: true }, { e: '🍎', t: 'Fruta', p: 200, req: true }, { e: '🍫', t: 'Chocolate', p: 300 }, { e: '🍭', t: 'Pirulito', p: 200 }, { e: '🍦', t: 'Sorvete', p: 400 }]
+    },
+    {
+      orc: 1500, fala: 'Você tem <b>R$ 15,00</b> para o material da escola. Compre o que PRECISA e veja se cabe mais alguma coisa.',
+      itens: [{ e: '📓', t: 'Caderno', p: 600, req: true }, { e: '✏️', t: 'Lápis', p: 200, req: true }, { e: '📏', t: 'Régua', p: 300, req: true }, { e: '🖍️', t: 'Giz de cera', p: 400 }, { e: '🃏', t: 'Figurinhas', p: 300 }, { e: '🎲', t: 'Jogo', p: 800 }]
+    }
+  ],
+  4: [
+    {
+      orc: 3000, fala: 'A turma juntou <b>R$ 30,00</b> para o piquenique. Monte a compra <b>sem passar do orçamento</b>. O que tem a etiqueta PRECISA não pode faltar!',
+      itens: [{ e: '🍞', t: 'Pão', p: 650, req: true }, { e: '🧀', t: 'Queijo', p: 850, req: true }, { e: '🥤', t: 'Suco', p: 700, req: true }, { e: '🍉', t: 'Melancia', p: 600 }, { e: '🍪', t: 'Biscoitos', p: 450 }, { e: '🍫', t: 'Chocolate', p: 500 }, { e: '🎈', t: 'Balões', p: 550 }]
+    },
+    {
+      orc: 4000, fala: 'Volta às aulas! Você tem <b>R$ 40,00</b>. Compre o material que PRECISA e veja o que mais cabe no orçamento.',
+      itens: [{ e: '📓', t: 'Cadernos', p: 1250, req: true }, { e: '✏️', t: 'Lápis e borracha', p: 450, req: true }, { e: '📏', t: 'Régua', p: 350, req: true }, { e: '🖍️', t: 'Lápis de cor', p: 900 }, { e: '✂️', t: 'Tesoura', p: 600 }, { e: '🃏', t: 'Figurinhas', p: 500 }, { e: '🎧', t: 'Fone de ouvido', p: 2500 }]
+    }
+  ],
+  5: [
+    {
+      orc: 10000, minSobra: 1000, fala: 'Você tem <b>R$ 100,00</b> para a festa. Compre o que PRECISA e deixe sobrar <b>pelo menos 10%</b> (R$ 10,00) para imprevistos.',
+      itens: [{ e: '🎂', t: 'Bolo', p: 3500, req: true }, { e: '🥤', t: 'Bebidas', p: 1800, req: true }, { e: '🍽️', t: 'Pratos e copos', p: 950, req: true }, { e: '🎈', t: 'Balões', p: 1200 }, { e: '🍬', t: 'Docinhos', p: 2400 }, { e: '🎁', t: 'Lembrancinhas', p: 2800 }, { e: '🎶', t: 'Caixa de som alugada', p: 4000 }]
+    },
+    {
+      orc: 8000, minSobra: 800, fala: 'A turma tem <b>R$ 80,00</b> para o passeio. Pague o que PRECISA e deixe sobrar <b>pelo menos 10%</b> (R$ 8,00) para imprevistos.',
+      itens: [{ e: '🚌', t: 'Ônibus', p: 3200, req: true }, { e: '🎟️', t: 'Ingressos', p: 2400, req: true }, { e: '🥪', t: 'Lanche', p: 1200, req: true }, { e: '💧', t: 'Água', p: 350 }, { e: '🍦', t: 'Sorvete', p: 600 }, { e: '📸', t: 'Foto da turma', p: 900 }]
+    }
+  ]
+};
+const F6 = {
+  cabe(ano) {
+    const itens = sample(MATERIAL, ano === 5 ? 3 : 2);
+    let W, precos, s;
+    do {
+      if (ano === 3) { W = pick([1000, 1500]); precos = itens.map(() => rnd(3, 9) * 100); }
+      else if (ano === 4) { W = pick([1500, 2000]); precos = itens.map(() => rnd(7, 25) * 50); }
+      else { W = pick([3000, 5000]); precos = itens.map(() => rnd(24, 80) * 25); }
+      s = soma(precos);
+    } while (s === W || Math.abs(s - W) > W * .4);
+    const dif = Math.abs(s - W), cabe = s < W;
+    const sobra = v => 'Sim, e ' + (v === 100 ? 'sobra ' : 'sobram ') + fmt(v);
+    const falta = v => 'Não: ' + (v === 100 ? 'falta ' : 'faltam ') + fmt(v);
+    const outro = dif + (ano === 3 ? 100 : (ano === 4 ? 50 : 25));
+    const ops = cabe ? [{ t: sobra(dif), ok: true }, { t: sobra(outro) }, { t: falta(dif) }, { t: 'Sim, e não sobra nada' }]
+      : [{ t: falta(dif), ok: true }, { t: falta(outro) }, { t: sobra(dif) }, { t: 'Sim, e não sobra nada' }];
+    const lista = itens.map((x, i) => x.t + ' custa <b>' + fmt(precos[i]) + '</b>');
+    const todos = itens.length === 2 ? 'os dois' : 'os três';
+    return {
+      tipo: 'mc', cols: 1, ops: shuffle(ops),
+      fala: 'Você tem <b>' + fmt(W) + '</b>. ' + cap(lista.slice(0, -1).join(', ')) + ' e ' + lista[lista.length - 1] + '. Dá para comprar ' + todos + '?',
+      visual: '<div class="cupom">' + itens.map((x, i) => '<div class="cupom-l"><span>' + x.e + ' ' + cap(x.t.replace(/^[oa] /, '')) + '</span><b>' + fmt(precos[i]) + '</b></div>').join('') + '<div class="cupom-total"><span>Você tem</span><b>' + fmt(W) + '</b></div></div>',
+      explica: precos.map(fmt).join(' + ') + ' = ' + fmt(s) + '. ' + (cabe ? 'É menos que ' + fmt(W) + ': dá para comprar e ' + (dif === 100 ? 'sobra ' : 'sobram ') + '<b>' + fmt(dif) + '</b>.' : 'É mais que ' + fmt(W) + ': ' + (dif === 100 ? 'falta ' : 'faltam ') + '<b>' + fmt(dif) + '</b>.') + ' Antes de comprar, some tudo e compare com o dinheiro que você tem.'
+    };
+  },
+  ideia: {
+    3: [
+      { fala: 'O que é um <b>orçamento</b>?', ops: [{ t: 'Um plano de como usar o dinheiro', ok: true }, { t: 'Um tipo de moeda' }, { t: 'Uma loja de brinquedos' }], explica: 'Orçamento é o plano que mostra quanto dinheiro temos e como vamos usar.' },
+      { fala: 'Você tem <b>R$ 8,00</b>. Quer um gibi de R$ 6,00 e um suco de R$ 4,00. Não dá para os dois! O que fazer?', ops: [{ t: 'Escolher um e deixar o outro para depois', ok: true }, { t: 'Pegar os dois e ficar devendo' }, { t: 'Ficar triste e não comprar nada' }], explica: 'Quando o dinheiro não dá para tudo, a gente escolhe o que é mais importante agora.' }
+    ],
+    4: [
+      { fala: 'O pneu da bicicleta furou e o conserto custa R$ 12,00. Isso não estava nos planos! Como se chama esse tipo de gasto?', ops: [{ t: 'Imprevisto', ok: true }, { t: 'Desconto' }, { t: 'Troco' }, { t: 'Mesada' }], explica: 'Imprevistos acontecem. Por isso é bom deixar uma parte do dinheiro guardada.' },
+      { fala: 'Qual é o <b>primeiro passo</b> para fazer um orçamento?', ops: [{ t: 'Saber quanto dinheiro eu tenho', ok: true }, { t: 'Comprar tudo o que eu quero' }, { t: 'Pedir dinheiro emprestado' }], explica: 'Tudo começa sabendo quanto dinheiro entra. Só depois se decide como gastar.' },
+      { fala: 'A família gasta <b>R$ 50,00</b> por semana na feira. Quanto gasta em <b>4 semanas</b>?', ops: opsValor(20000, [15000, 25000, 5400, 10000]), cols: 2, explica: '4 × R$ 50,00 = <b>R$ 200,00</b>. Saber o gasto do mês ajuda a planejar o orçamento.' }
+    ],
+    5: [
+      { fala: 'Um orçamento está <b>equilibrado</b> quando...', ops: [{ t: 'Os gastos são menores ou iguais ao dinheiro que entra', ok: true }, { t: 'Os gastos são maiores do que o dinheiro que entra' }, { t: 'Ninguém anota nenhum gasto' }], explica: 'Gastar menos do que se ganha é a regra de ouro. A diferença vira poupança.' },
+      { fala: 'Uma família recebe <b>R$ 2.000,00</b> por mês e gasta <b>R$ 2.300,00</b>. O que acontece?', ops: [{ t: 'Faltam R$ 300,00: é preciso cortar gastos', ok: true }, { t: 'Sobram R$ 300,00 para guardar' }, { t: 'O orçamento está equilibrado' }], explica: 'R$ 2.300,00 − R$ 2.000,00 = R$ 300,00 a mais do que entra. Isso vira dívida. A saída é rever os desejos e cortar gastos.' }
+    ]
+  },
+  ultimo(ano) {
+    if (ano === 3) {
+      const c = pick([
+        { W: 1000, ok: [400, 300, 200], no: [[600, 500], [400, 400, 300], [700, 400]] },
+        { W: 1500, ok: [600, 500, 300], no: [[900, 700], [800, 800], [600, 500, 500]] },
+        { W: 2000, ok: [900, 600, 400], no: [[1200, 900], [800, 700, 600], [1000, 600, 500]] }
+      ]);
+      const txt = l => l.map(fmt).join(' + ');
+      return {
+        tipo: 'mc', cols: 1, fala: 'Você tem <b>' + fmt(c.W) + '</b>. Qual compra <b>cabe</b> no seu dinheiro? Some os preços!',
+        ops: shuffle([{ t: txt(c.ok), ok: true }].concat(c.no.map(l => ({ t: txt(l) })))),
+        explica: txt(c.ok) + ' = <b>' + fmt(soma(c.ok)) + '</b>, que é menos que ' + fmt(c.W) + '. As outras compras passam do limite.'
+      };
+    }
+    if (ano === 4) {
+      const T = pick([4000, 5000]), g1 = pick([1450, 1650, 1850]), g2 = pick([900, 1200, 1500]), s = T - g1 - g2;
+      return {
+        tipo: 'mc', fala: 'Você tinha <b>' + fmt(T) + '</b>. Gastou <b>' + fmt(g1) + '</b> no mercado e <b>' + fmt(g2) + '</b> na papelaria. Quanto sobrou?',
+        visual: '<span class="grande">🛒 + 📓</span>', ops: opsValor(s, [T - g1, T - g2, g1 + g2, s + 100, s - 100]),
+        explica: 'Gastos: ' + fmt(g1) + ' + ' + fmt(g2) + ' = ' + fmt(g1 + g2) + '. Sobra: ' + fmt(T) + ' − ' + fmt(g1 + g2) + ' = <b>' + fmt(s) + '</b>. Anotar os gastos mostra para onde o dinheiro vai.'
+      };
+    }
+    if (Math.random() < .5) {
+      const R = pick([160000, 200000, 240000, 300000]);
+      return {
+        tipo: 'mc', fala: 'Uma família recebe <b>' + fmt(R) + '</b> por mês. <b>50%</b> vai para moradia e comida e <b>25%</b> para contas e transporte. Quanto sobra para lazer e poupança?',
+        visual: '<span class="grande">🏠 50% · 🚌 25% · ❓</span>', ops: opsValor(R / 4, [R / 2, R * 3 / 4, R / 10, R / 5]),
+        explica: '50% + 25% = 75%. Sobram 25%, que é a quarta parte: ' + fmt(R) + ' ÷ 4 = <b>' + fmt(R / 4) + '</b>.'
+      };
+    }
+    const x = pick([4000, 6000, 8000]), pc = pick([10, 25, 50]), g = x * pc / 100;
+    return {
+      tipo: 'mc', fala: 'Sua mesada é de <b>' + fmt(x) + '</b>. Você guarda <b>' + pc + '%</b> logo que recebe. Quanto sobra para o resto do mês?',
+      visual: '<span class="grande">🐷</span><span class="preco">' + pc + '%</span>', ops: opsValor(x - g, [g, x - pc * 100, x - g + 500, x - g - 500, x / 2].filter(v => v !== x - g)),
+      explica: pc + '% de ' + fmt(x) + ' = ' + fmt(g) + '. Sobra: ' + fmt(x) + ' − ' + fmt(g) + ' = <b>' + fmt(x - g) + '</b>. Guardar primeiro e gastar o que sobra é um ótimo hábito.'
+    };
+  }
+};
+
+FASES.push({
+  n: 6, nome: 'O desafio do orçamento', ic: '📊', cor: 'var(--uva)', cor2: 'var(--uva-esc)',
+  intro: 'Missão final! Cuidar de um <b>orçamento</b> é fazer o dinheiro dar para o que importa.',
+  resumo: 'Você recebe uma quantia limitada. Compre o que é necessário, veja o que mais cabe e nunca gaste mais do que tem.',
+  montar(ano) {
+    const pl = shuffle(PLANOS[ano]), id = pick(F6.ideia[ano]);
+    const plano = c => ({
+      tipo: 'plano', orc: c.orc, itens: c.itens, minSobra: c.minSobra, fala: c.fala,
+      explica: 'Um bom orçamento compra primeiro o que é necessário e nunca gasta mais do que tem.',
+      aoTerminar: (res, ctx) => { if (res.nota === 1) ctx.planosOk++; ctx.sobrou += res.sobra || 0; }
+    });
+    return {
+      ctx: { planosOk: 0, sobrou: 0 },
+      passos: [
+        F6.cabe(ano), plano(pl[0]),
+        { tipo: 'mc', fala: id.fala, ops: shuffle(id.ops), cols: id.cols || 1, explica: id.explica },
+        plano(pl[1]), F6.ultimo(ano)
+      ],
+      fim: c => (c.sobrou > 0 ? 'Nos seus planos sobraram ' + fmt(c.sobrou) + ' para guardar. Isso é cuidar bem do dinheiro!' : '')
+    };
+  }
+});
+
+;
+/* ===== Motor do jogo: telas, mascote e andamento das fases ===== */
+const FRASES = {
+  certo: ['Muito bem!', 'Isso mesmo!', 'Você arrasou!', 'Mandou bem!', 'Acertou!', 'Que craque!', 'Perfeito!'],
+  meio: ['Quase perfeito!', 'Boa tentativa!', 'Foi por pouco!'],
+  errado: ['Não foi dessa vez!', 'Vamos aprender juntos!', 'Tudo bem errar!', 'Quase lá!']
+};
+
+const Mascote = {
+  relogio: null,
+  por(id, humor) {
+    const m = $('#' + id);
+    if (!m.firstChild) m.innerHTML = mascoteSVG();
+    this.humor(m, humor || 'neutro');
+  },
+  humor(m, h) { m.dataset.humor = 'neutro'; void m.offsetWidth; m.dataset.humor = h; },
+  diz(html, humor) {
+    $('#fala-txt').innerHTML = html;
+    const m = $('#masc-fase');
+    this.humor(m, humor || 'neutro');
+    clearTimeout(this.relogio);
+    if (humor && humor !== 'neutro') this.relogio = setTimeout(() => { m.dataset.humor = 'neutro'; }, 1800);
+    if (S.voz) Voz.falar(html, $('#b-ouvir'));
+  }
+};
+
+const Tela = {
+  atual: 'inicio',
+  ir(nome) {
+    Voz.parar();
+    $$('.tela').forEach(t => { t.hidden = t.id !== 't-' + nome; });
+    $('#retorno').hidden = true;
+    this.atual = nome;
+    $('#t-' + nome).scrollTop = 0;
+  }
+};
+
+function totalPontos(ano) { const pr = S.prog[ano || S.ano] || {}; return soma(Object.keys(pr).map(k => pr[k].pts || 0)); }
+function totalEstrelas(ano) { const pr = S.prog[ano || S.ano] || {}; return soma(Object.keys(pr).map(k => pr[k].est || 0)); }
+function fasesFeitas(ano) { return Object.keys(S.prog[ano || S.ano] || {}).length; }
+
+function desenhaMapa() {
+  $('#mapa-nome').textContent = S.nome ? 'Olá, ' + S.nome + '!' : 'Olá!';
+  $('#mapa-ano').textContent = S.ano + 'º ano';
+  $('#mapa-pontos').innerHTML = ICO.estrela() + '<span>' + totalPontos() + ' pontos</span>';
+  const cx = $('#fases'); cx.innerHTML = '';
+  const pr = S.prog[S.ano];
+  const prox = FASES.filter(f => !pr[f.n])[0];
+  FASES.forEach(f => {
+    const d = pr[f.n];
+    const b = el('button', 'fase-bt' + (prox && prox.n === f.n ? ' proxima' : ''),
+      '<span class="fase-num">' + f.n + '</span><span class="fase-ic">' + f.ic + '</span><span class="fase-tit">' + f.nome + '</span>' +
+      '<span class="fase-estrelas">' + [1, 2, 3].map(k => ICO.estrela(d && d.est >= k ? '' : 'vazia')).join('') + '</span>');
+    b.type = 'button';
+    b.style.setProperty('--cf', f.cor); b.style.setProperty('--cfs', f.cor2);
+    b.setAttribute('aria-label', 'Fase ' + f.n + ': ' + f.nome + (d ? '. ' + d.est + ' de 3 estrelas' : ''));
+    b.addEventListener('click', () => { Som.tocar('clique'); Jogo.abrirFase(f.n); });
+    cx.appendChild(b);
+  });
+  const feitas = fasesFeitas();
+  $('#mapa-fala').textContent = feitas === 0 ? 'Eu sou o Dindim! Escolha uma fase para começar. Que tal a número 1?'
+    : feitas < 6 ? 'Você já tem ' + totalEstrelas() + ' estrelas! Continue a missão: faltam ' + (6 - feitas) + (6 - feitas === 1 ? ' fase.' : ' fases.')
+      : 'Missão cumprida! Veja suas medalhas e pegue seu certificado. Jogue de novo para ganhar mais estrelas!';
+  Mascote.por('masc-mapa', feitas === 6 ? 'feliz' : 'neutro');
+}
+function irMapa() { desenhaMapa(); Tela.ir('mapa'); }
+
+const Jogo = {
+  fase: null, dados: null, i: -1, notas: [], pontos: 0, seq: 0, maxSeq: 0, total: 0, passo: null,
+  livre(p) { return typeof p === 'function' ? !!p.livre : p.pontua === false; },
+  abrirFase(n) {
+    const f = FASES[n - 1];
+    this.fase = f; this.dados = f.montar(S.ano);
+    this.i = -1; this.notas = []; this.pontos = 0; this.seq = 0; this.maxSeq = 0;
+    this.total = this.dados.passos.filter(p => !this.livre(p)).length;
+    $('#fase-nome').textContent = 'Fase ' + f.n + ' · ' + f.nome;
+    $('#hud').hidden = true; $('#hud').innerHTML = '';
+    $('#t-fase').classList.remove('com-retorno');
+    this.pontinhos(); this.mostraPontos();
+    Tela.ir('fase');
+    Mascote.por('masc-fase');
+    const palco = $('#palco'); palco.innerHTML = '';
+    Mascote.diz(f.intro, 'feliz');
+    const c = el('div', 'intro cartao', '<div class="intro-ic">' + f.ic + '</div><h3>Fase ' + f.n + ' · ' + f.nome + '</h3><p>' + f.resumo + '</p>');
+    const b = el('button', 'btn btn-verde btn-g', 'COMEÇAR'); b.type = 'button';
+    b.addEventListener('click', () => { Som.tocar('clique'); this.proximo(); });
+    c.appendChild(b); palco.appendChild(c);
+  },
+  mostraPontos() { $('#fase-pontos').innerHTML = ICO.estrela() + '<span>' + this.pontos + '</span>'; },
+  pontinhos() {
+    const cx = $('#pontinhos'); cx.innerHTML = '';
+    for (let k = 0; k < this.total; k++) {
+      const d = document.createElement('i');
+      if (k < this.notas.length) d.className = this.notas[k] === 1 ? 'ok' : (this.notas[k] > 0 ? 'meio' : 'nao');
+      else if (k === this.notas.length && this.i >= 0) d.className = 'atual';
+      cx.appendChild(d);
+    }
+    cx.setAttribute('role', 'img');
+    cx.setAttribute('aria-label', 'Desafio ' + Math.min(this.total, this.notas.length + 1) + ' de ' + this.total);
+  },
+  hud() {
+    if (!this.dados.hud) return;
+    const h = this.dados.hud(this.dados.ctx), cx = $('#hud');
+    if (!h) { cx.hidden = true; return; }
+    if (!cx.firstChild) cx.innerHTML = '<div class="hud-cofre"><span class="hud-e">🐷</span><div class="hud-barra"><i></i><b></b></div><span class="hud-e hud-alvo"></span></div>';
+    cx.hidden = false;
+    $('.hud-alvo', cx).textContent = h.e;
+    $('.hud-barra b', cx).textContent = h.txt;
+    setTimeout(() => { $('.hud-barra i', cx).style.width = Math.min(100, h.pct) + '%'; }, 30);
+  },
+  proximo() {
+    $('#retorno').hidden = true; $('#t-fase').classList.remove('com-retorno'); Voz.parar();
+    this.i++;
+    if (this.i >= this.dados.passos.length) { this.terminar(); return; }
+    let p = this.dados.passos[this.i];
+    if (typeof p === 'function') p = p(this.dados.ctx);
+    this.passo = p;
+    this.pontinhos(); this.hud();
+    const palco = $('#palco'); palco.innerHTML = '';
+    Mascote.diz(p.fala, 'neutro');
+    W[p.tipo](p, palco, res => this.concluir(p, res), this.dados.ctx);
+    $('#t-fase').scrollTop = 0;
+  },
+  concluir(p, res) {
+    if (p.aoTerminar) p.aoTerminar(res, this.dados.ctx);
+    this.hud();
+    if (p.pontua === false) { setTimeout(() => this.proximo(), 450); return; }
+    const nota = res.nota;
+    this.notas.push(nota);
+    let pts = Math.round(nota * 10), bonus = false;
+    if (nota === 1) { this.seq++; if (this.seq > this.maxSeq) this.maxSeq = this.seq; if (this.seq >= 3) { pts += 5; bonus = true; } }
+    else this.seq = 0;
+    this.pontos += pts; this.mostraPontos(); this.pontinhos();
+    const tipo = nota === 1 ? 'certo' : (nota > 0 ? 'meio' : 'errado');
+    Som.tocar(tipo);
+    if (nota === 1) confete(16);
+    clearTimeout(Mascote.relogio);
+    Mascote.humor($('#masc-fase'), nota === 1 ? 'feliz' : (nota > 0 ? 'neutro' : 'triste'));
+    const r = $('#retorno'), tit = res.titulo || pick(FRASES[tipo]);
+    const exp = (res.explica || p.explica || '') + (bonus ? ' <b>Sequência de ' + this.seq + ' acertos: bônus de 5 pontos!</b>' : '');
+    r.dataset.tipo = tipo;
+    $('#ret-ic').innerHTML = nota === 1 ? ICO.check : (nota > 0 ? ICO.quase : ICO.x);
+    $('#ret-tit').textContent = tit + (pts ? '  +' + pts + ' pontos' : '');
+    $('#ret-exp').innerHTML = exp;
+    r.hidden = false; $('#t-fase').classList.add('com-retorno');
+    if (S.voz) Voz.falar(tit + '. ' + exp, $('#b-ouvir2'));
+  },
+  terminar() {
+    const media = soma(this.notas) / Math.max(1, this.notas.length);
+    const est = media >= .9 ? 3 : (media >= .6 ? 2 : 1);
+    const pr = S.prog[S.ano], ant = pr[this.fase.n] || { pts: 0, est: 0, vezes: 0 };
+    pr[this.fase.n] = { pts: Math.max(ant.pts, this.pontos), est: Math.max(ant.est, est), vezes: ant.vezes + 1 };
+    const msg = this.dados.fim ? this.dados.fim(this.dados.ctx) : '';
+    const novas = verificarConquistas(this, est);
+    salvar();
+    mostrarFim(this, est, novas, ant, msg);
+  }
+};
+
+/* Janela de aviso/confirmação feita na própria página. */
+function abrirModal(html, botoes) {
+  const cx = $('#modal-cx'); cx.innerHTML = html;
+  const ac = el('div', 'modal-acoes');
+  (botoes || [{ t: 'Fechar', cls: 'btn-verde' }]).forEach(b => {
+    const bt = el('button', 'btn btn-p ' + (b.cls || 'btn-claro'), b.t); bt.type = 'button';
+    bt.addEventListener('click', () => { Som.tocar('clique'); $('#modal').hidden = true; if (b.fn) b.fn(); });
+    ac.appendChild(bt);
+  });
+  cx.appendChild(ac);
+  $('#modal').hidden = false;
+  cx.scrollTop = 0;
+  const pri = $('button', ac); if (pri) pri.focus();
+}
+
+;
+/* ===== Resultado, medalhas, certificado, área do professor e ligação dos botões ===== */
+const NIVEL = ['bronze', 'prata', 'ouro'];
+const CONQUISTAS = [
+  { id: 'inicio', ic: '★', t: 'Primeiros passos', d: 'Terminar a primeira fase' },
+  { id: 'seq5', ic: '5', t: 'Sequência perfeita', d: 'Acertar 5 desafios seguidos' },
+  { id: 'troco', ic: '$', t: 'Troco certo', d: 'Ganhar 3 estrelas no Mercado inteligente' },
+  { id: 'sonho', ic: '♥', t: 'Sonho realizado', d: 'Encher o cofrinho e conquistar o sonho' },
+  { id: 'mestre', ic: '✓', t: 'Mestre do orçamento', d: 'Acertar os dois orçamentos de primeira' },
+  { id: 'missao', ic: '6', t: 'Missão cumprida', d: 'Terminar as 6 fases' },
+  { id: 'super', ic: '18', t: 'Super estrela', d: 'Ganhar 3 estrelas em todas as fases' }
+];
+function verificarConquistas(j, est) {
+  const novas = [], pr = S.prog[S.ano], ctx = j.dados.ctx, chaves = Object.keys(pr);
+  const dar = id => {
+    const k = S.ano + ':' + id;
+    if (!S.conq[k]) { S.conq[k] = true; novas.push(CONQUISTAS.filter(c => c.id === id)[0]); }
+  };
+  dar('inicio');
+  if (j.maxSeq >= 5) dar('seq5');
+  if (j.fase.n === 2 && est === 3) dar('troco');
+  if (j.fase.n === 5 && ctx.realizou) dar('sonho');
+  if (j.fase.n === 6 && ctx.planosOk === 2) dar('mestre');
+  if (chaves.length === 6) dar('missao');
+  if (chaves.length === 6 && chaves.every(k => pr[k].est === 3)) dar('super');
+  return novas;
+}
+
+function mostrarFim(j, est, novas, ant, msg) {
+  const f = j.fase;
+  $('#fim-sub').textContent = 'Fase ' + f.n + ' · ' + f.nome + ' · ' + S.ano + 'º ano';
+  $('#fim-tit').textContent = est === 3 ? 'Fase completa!' : (est === 2 ? 'Muito bem!' : 'Fase concluída!');
+  $('#fim-estrelas').innerHTML = [1, 2, 3].map(k => ICO.estrela(est >= k ? '' : 'vazia')).join('');
+  $('#fim-medalha').innerHTML = medalhaSVG(NIVEL[est - 1], String(f.n));
+  Mascote.por('masc-fim', 'feliz');
+  $('#fim-pontos').innerHTML = 'Você fez <b>' + j.pontos + '</b> pontos' + (ant.vezes && j.pontos > ant.pts ? ' · novo recorde!' : '');
+  $('#fim-msg').textContent = (msg ? msg + ' ' : '') + ['Medalha de bronze! Errar faz parte de aprender. Jogue de novo e veja como você melhora.',
+    'Medalha de prata! Jogue de novo para buscar o ouro.', 'Medalha de ouro! Você domina esse assunto.'][est - 1];
+  $('#fim-novas').innerHTML = novas.map(c => '<span class="nova"><span class="med-ic">' + medalhaSVG('conquista', c.ic) + '</span><span>Nova conquista: <b>' + c.t + '</b></span></span>').join('');
+  $('#b-prox').hidden = f.n >= FASES.length;
+  Tela.ir('fim');
+  Som.tocar('vitoria'); confete(est === 3 ? 90 : 50);
+  if (novas.length) setTimeout(() => Som.tocar('medalha'), 1300);
+  if (novas.some(c => c.id === 'missao')) {
+    setTimeout(() => abrirModal('<h2>Missão cumprida!</h2><p>Você terminou as 6 fases e aprendeu a cuidar do dinheiro. Seu certificado está pronto!</p>',
+      [{ t: 'Depois' }, { t: 'Ver certificado', cls: 'btn-verde', fn: () => { desenhaCert(); voltaCert = 'mapa'; Tela.ir('cert'); } }]), 2200);
+  }
+}
+
+let voltaMed = 'inicio', voltaCert = 'medalhas';
+function desenhaMedalhas() {
+  $('#med-ano').textContent = S.ano + 'º ano';
+  const pr = S.prog[S.ano];
+  $('#med-fases').innerHTML = FASES.map(f => {
+    const d = pr[f.n], nv = d ? NIVEL[d.est - 1] : 'bronze';
+    return '<div class="med' + (d ? '' : ' falta') + '"><span class="med-ic">' + medalhaSVG(nv, String(f.n)) + '</span><b>' + f.nome + '</b><small>' +
+      (d ? cap(nv) + ' · ' + d.pts + ' pontos' : 'Ainda não jogou') + '</small></div>';
+  }).join('');
+  $('#med-conq').innerHTML = CONQUISTAS.map(c => '<div class="med' + (S.conq[S.ano + ':' + c.id] ? '' : ' falta') + '"><span class="med-ic">' +
+    medalhaSVG('conquista', c.ic) + '</span><b>' + c.t + '</b><small>' + c.d + '</small></div>').join('');
+  const feitas = fasesFeitas();
+  $('#b-cert').disabled = feitas < 6;
+  $('#cert-dica').textContent = feitas === 6 ? 'Parabéns! Seu certificado está pronto.' : 'Termine as 6 fases para ganhar o certificado. ' + (6 - feitas === 1 ? 'Falta 1 fase.' : 'Faltam ' + (6 - feitas) + ' fases.');
+}
+function irMedalhas(de) {
+  if (!S.ano) { abrirJogador(); return; }
+  voltaMed = de; desenhaMedalhas(); Tela.ir('medalhas');
+}
+function desenhaCert() {
+  const pr = S.prog[S.ano];
+  $('#cert').innerHTML = '<div class="mascote" data-humor="feliz">' + mascoteSVG() + '</div><h3>CERTIFICADO</h3><p>Este certificado é de</p>' +
+    '<div class="cert-nome">' + esc(S.nome || 'Estudante nota 10') + '</div>' +
+    '<p>que completou a missão <b>Aprender a cuidar do dinheiro</b> no nível do <b>' + S.ano + 'º ano</b>, com <b>' + totalPontos() + ' pontos</b> e <b>' + totalEstrelas() + ' de 18 estrelas</b>.</p>' +
+    '<div class="cert-med">' + FASES.map(f => '<span class="med-ic">' + medalhaSVG(pr[f.n] ? NIVEL[pr[f.n].est - 1] : 'bronze', String(f.n)) + '</span>').join('') + '</div>' +
+    '<p>Agora você sabe ganhar, gastar, economizar e planejar!</p><small>' + new Date().toLocaleDateString('pt-BR') + '</small>';
+}
+
+function abrirJogador() {
+  $('#in-nome').value = S.nome || '';
+  $('#ck-voz').checked = !!S.voz;
+  const ano = S.ano || 5;
+  $$('.ano').forEach(b => { const s = Number(b.dataset.ano) === ano; b.classList.toggle('sel', s); b.setAttribute('aria-pressed', s ? 'true' : 'false'); });
+  Tela.ir('jogador');
+}
+function entrar() {
+  const sel = $('.ano.sel');
+  S.nome = $('#in-nome').value.replace(/\s+/g, ' ').trim().slice(0, 24);
+  S.ano = sel ? Number(sel.dataset.ano) : 5;
+  S.voz = $('#ck-voz').checked && Voz.ok;
+  usarPerfil(S.nome); salvar(); irMapa();
+}
+function atualizaSom() {
+  $$('.btn-som').forEach(b => { b.innerHTML = S.som ? ICO.som : ICO.mudo; b.setAttribute('aria-pressed', S.som ? 'true' : 'false'); });
+}
+function abrirProfessor() {
+  abrirModal('<h2>Para o professor</h2>' +
+    '<p>Jogo de educação financeira para o 3º, 4º e 5º anos. O aluno aprende a ganhar, gastar, economizar e planejar o dinheiro.</p>' +
+    '<h3>Como funciona</h3><ul><li>São <b>6 fases</b> com <b>5 desafios</b> cada: 30 desafios por ano escolar.</li>' +
+    '<li>Os desafios são sorteados e os valores mudam: cada partida é diferente.</li>' +
+    '<li>Cada resposta traz uma explicação. A fase rende de 1 a 3 estrelas e uma medalha de bronze, prata ou ouro.</li>' +
+    '<li>Ao terminar as 6 fases, o aluno recebe um certificado com o nome dele.</li></ul>' +
+    '<h3>Os três níveis</h3><ul><li><b>3º ano:</b> reconhecer moedas e notas, pequenas somas e escolhas simples.</li>' +
+    '<li><b>4º ano:</b> compras, troco, multiplicação e comparação de preços.</li>' +
+    '<li><b>5º ano:</b> orçamento, porcentagens simples (10%, 25%, 50% e 75%) e consumo consciente.</li></ul>' +
+    '<h3>Habilidades da BNCC relacionadas</h3><ul><li>EF03MA24: comparação e equivalência de valores em compra, venda e troca.</li>' +
+    '<li>EF04MA25: compra e venda, troco e desconto, consumo ético e consciente.</li>' +
+    '<li>EF05MA06: porcentagens de 10%, 25%, 50%, 75% e 100% em contextos de educação financeira.</li></ul>' +
+    '<h3>Dicas de uso</h3><ul><li>Na tela “Quem vai jogar?”, ligue <b>Ler as perguntas em voz alta</b> para alunos com dificuldade de leitura. O botão roxo de alto-falante lê a pergunta a qualquer momento.</li>' +
+    '<li>Nos desafios de arrastar, também dá para tocar na figura e depois no lugar dela.</li>' +
+    '<li>O progresso fica guardado neste aparelho, separado pelo nome de cada aluno.</li></ul>',
+    [{ t: 'Apagar o progresso deste aparelho', cls: 'btn-coral', fn: () => abrirModal('<h2>Apagar tudo?</h2><p>As estrelas, os pontos e as medalhas de todos os alunos neste aparelho serão apagados. Não dá para desfazer.</p>',
+      [{ t: 'Cancelar' }, { t: 'Apagar', cls: 'btn-coral', fn: () => { S.perfis = {}; usarPerfil(S.nome); salvar(); abrirModal('<h2>Pronto!</h2><p>O progresso deste aparelho foi apagado.</p>'); } }]) },
+    { t: 'Fechar', cls: 'btn-verde' }]);
+}
+
+function iniciar() {
+  carregar();
+  try {
+    const l = document.createElement('link'); l.rel = 'stylesheet';
+    l.href = 'https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800;900&display=swap';
+    document.head.appendChild(l);
+  } catch (e) { /* sem internet: usa as fontes do aparelho */ }
+  Mascote.por('masc-inicio', 'neutro');
+  const chuva = $('#chuva');
+  [[100, 4, 6], [25, 86, 0], [50, 0, 52], [10, 92, 58], [5, 12, 92], [100, 80, 96]].forEach((c, i) => {
+    const t = el('div', '', din(c[0])), d = t.firstChild;
+    d.style.left = c[1] + '%'; d.style.top = c[2] + '%'; d.style.animationDelay = (-i * .7) + 's';
+    chuva.appendChild(d);
+  });
+  $('#b-sair').innerHTML = ICO.casa;
+  $('#b-volta-med').innerHTML = ICO.voltar; $('#b-volta-cert').innerHTML = ICO.voltar;
+  $$('.ouvir').forEach(b => { b.innerHTML = ICO.som; b.hidden = !Voz.ok; });
+  if (!Voz.ok) $('.chave').hidden = true;
+  if (window.JOGO_ARQUIVO) $('#b-imprimir').hidden = false;
+  atualizaSom();
+
+  const clique = (id, fn) => $(id).addEventListener('click', () => { Som.tocar('clique'); fn(); });
+  clique('#b-jogar', abrirJogador);
+  clique('#b-medalhas0', () => irMedalhas('inicio'));
+  clique('#b-prof', abrirProfessor);
+  clique('#b-entrar', entrar);
+  clique('#b-trocar', abrirJogador);
+  clique('#b-medalhas', () => irMedalhas('mapa'));
+  clique('#b-volta-med', () => { if (voltaMed === 'mapa') irMapa(); else Tela.ir('inicio'); });
+  clique('#b-cert', () => { desenhaCert(); voltaCert = 'medalhas'; Tela.ir('cert'); confete(60); });
+  clique('#b-volta-cert', () => { if (voltaCert === 'mapa') irMapa(); else { desenhaMedalhas(); Tela.ir('medalhas'); } });
+  clique('#b-imprimir', () => { try { window.print(); } catch (e) { /* ignora */ } });
+  clique('#b-continuar', () => Jogo.proximo());
+  clique('#b-denovo', () => Jogo.abrirFase(Jogo.fase.n));
+  clique('#b-prox', () => Jogo.abrirFase(Jogo.fase.n + 1));
+  clique('#b-mapa', irMapa);
+  clique('#b-sair', () => {
+    if (Jogo.i < 0) { irMapa(); return; }
+    abrirModal('<h2>Sair da fase?</h2><p>Os pontos desta rodada não ficam guardados. Você pode jogar a fase de novo depois.</p>',
+      [{ t: 'Continuar jogando', cls: 'btn-verde' }, { t: 'Sair', fn: irMapa }]);
+  });
+  $('#b-ouvir').addEventListener('click', e => Voz.falar($('#fala-txt').innerHTML, e.currentTarget));
+  $('#b-ouvir2').addEventListener('click', e => Voz.falar($('#ret-tit').textContent + '. ' + $('#ret-exp').innerHTML, e.currentTarget));
+  $$('.btn-som').forEach(b => b.addEventListener('click', () => { S.som = !S.som; salvar(); atualizaSom(); if (S.som) Som.tocar('clique'); else Voz.parar(); }));
+  $$('.ano').forEach(b => b.addEventListener('click', () => {
+    Som.tocar('clique');
+    $$('.ano').forEach(x => { x.classList.toggle('sel', x === b); x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+  }));
+  $('#in-nome').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); entrar(); } });
+  $('#modal').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.hidden = true; });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#modal').hidden) $('#modal').hidden = true; });
+  document.addEventListener('pointerdown', () => Som.iniciar(), { once: true });
+}
+iniciar();
+
+</script>
+</html>
