@@ -544,6 +544,15 @@ svg { display: block; }
   background: radial-gradient(circle, rgba(255,210,63,.85), rgba(255,210,63,0) 65%); animation: vLuz 2.4s ease-in-out infinite; }
 @keyframes vLuz { 50% { transform: scale(.8); opacity: .45; } }
 
+.vozes { display: flex; flex-direction: column; gap: 8px; max-height: 42vh; overflow-y: auto; margin: 10px 0; padding: 2px; }
+.voz-op { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 10px; align-items: center; text-align: left; padding: 10px 14px; border-radius: 14px;
+  background: var(--papel2); border: 3px solid var(--linha); color: var(--tinta); }
+.voz-op b { font-size: 1rem; overflow-wrap: anywhere; }
+.voz-op small { grid-column: 1; color: var(--tinta2); font-size: .8rem; }
+.voz-op.sel { border-color: var(--verde); background: var(--verde-claro); }
+.voz-play { grid-column: 2; grid-row: 1 / span 2; background: var(--uva); color: #fff; border-radius: 999px; padding: 4px 14px; font-size: .85rem; }
+.voz-tag { background: var(--verde); color: #fff; font-size: .68rem; padding: 1px 8px; border-radius: 999px; margin-left: 8px; text-transform: uppercase; letter-spacing: .05em; vertical-align: middle; }
+.voz-dica { font-size: .9rem !important; color: var(--tinta2); }
 .btn.chama { animation: chama 1.4s ease-in-out infinite; }
 #b-video span, #b-video2 span { white-space: nowrap; }
 
@@ -655,6 +664,7 @@ svg { display: block; }
         <button class="btn btn-verde" id="v-play" type="button" aria-label="Tocar o vídeo"></button>
         <button class="btn btn-claro btn-ic" id="v-prox" type="button" aria-label="Próxima cena"></button>
         <button class="btn btn-verde btn-g" id="v-fim" type="button" hidden>VAMOS JOGAR!</button>
+        <button class="btn btn-claro btn-p" id="v-voz" type="button">Trocar a voz</button>
         <button class="btn btn-sol btn-p" id="v-pular" type="button">Ir para o jogo</button>
       </div>
     </div>
@@ -801,7 +811,7 @@ function decompor(valor, pecas) {
 /* ===== Estado salvo no aparelho ===== */
 const CHAVE = 'missaoDinheiro.v1';
 /* Cada nome tem o seu próprio progresso (útil quando vários alunos usam o mesmo aparelho). */
-const S = { nome: '', ano: 0, som: true, voz: false, viuVideo: false, perfis: {}, prog: null, conq: null };
+const S = { nome: '', ano: 0, som: true, voz: false, viuVideo: false, vozNome: '', videoLivre: false, perfis: {}, perfil: null, prog: null, conq: null };
 function usarPerfil(nome) {
   const k = 'p:' + String(nome || '').trim().toLowerCase();
   if (!S.perfis[k] || typeof S.perfis[k] !== 'object') S.perfis[k] = { prog: {}, conq: {} };
@@ -809,19 +819,21 @@ function usarPerfil(nome) {
   if (!p.prog) p.prog = {};
   if (!p.conq) p.conq = {};
   [3, 4, 5].forEach(a => { if (!p.prog[a]) p.prog[a] = {}; });
-  S.prog = p.prog; S.conq = p.conq;
+  S.prog = p.prog; S.conq = p.conq; S.perfil = p;
 }
+/* O vídeo é obrigatório na primeira vez de cada aluno (o professor pode deixar opcional). */
+function precisaVideo() { return !S.videoLivre && !(S.perfil && S.perfil.viuVideo); }
 function carregar() {
   try {
     const d = JSON.parse(localStorage.getItem(CHAVE));
-    if (d && typeof d === 'object') ['nome', 'ano', 'som', 'voz', 'viuVideo', 'perfis'].forEach(k => { if (d[k] != null) S[k] = d[k]; });
+    if (d && typeof d === 'object') ['nome', 'ano', 'som', 'voz', 'viuVideo', 'vozNome', 'videoLivre', 'perfis'].forEach(k => { if (d[k] != null) S[k] = d[k]; });
   } catch (e) { /* sem armazenamento: o jogo funciona, só não guarda o progresso */ }
   if (!S.perfis || typeof S.perfis !== 'object') S.perfis = {};
   if ([3, 4, 5].indexOf(S.ano) < 0) S.ano = 0;
   usarPerfil(S.nome);
 }
 function salvar() {
-  try { localStorage.setItem(CHAVE, JSON.stringify({ nome: S.nome, ano: S.ano, som: S.som, voz: S.voz, viuVideo: S.viuVideo, perfis: S.perfis })); } catch (e) { /* ignora */ }
+  try { localStorage.setItem(CHAVE, JSON.stringify({ nome: S.nome, ano: S.ano, som: S.som, voz: S.voz, viuVideo: S.viuVideo, vozNome: S.vozNome, videoLivre: S.videoLivre, perfis: S.perfis })); } catch (e) { /* ignora */ }
 }
 
 /* ===== Sons (feitos na hora, sem arquivos) ===== */
@@ -871,15 +883,41 @@ const Voz = {
     });
     return t.replace(/R\$\s?(\d+)/g, '$1 reais').replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu, ' ').replace(/\s+/g, ' ').trim();
   },
+  /* Nota de cada voz: vozes neurais ("Natural", "Online", Google) soam muito mais humanas que as antigas. */
+  nota(v) {
+    let n = 0;
+    if (/^pt[-_]BR/i.test(v.lang)) n += 100;
+    if (/natural|neural/i.test(v.name)) n += 60;
+    if (/online/i.test(v.name)) n += 40;
+    if (/google/i.test(v.name)) n += 35;
+    if (/francisca|thalita|luciana|vit[oó]ria|camila|brenda|leila|manuela/i.test(v.name)) n += 15;
+    if (/eSpeak|compact/i.test(v.name)) n -= 50;
+    return n;
+  },
+  natural(v) { return !!v && /natural|neural|online|google|premium|enhanced/i.test(v.name); },
+  lista() {
+    if (!this.ok) return [];
+    try { return (window.speechSynthesis.getVoices() || []).filter(v => /^pt/i.test(v.lang)).sort((a, b) => this.nota(b) - this.nota(a)); } catch (e) { return []; }
+  },
+  melhor() {
+    const vs = this.lista();
+    if (S.vozNome) { const v = vs.filter(x => x.name === S.vozNome)[0]; if (v) return v; }
+    return vs[0] || null;
+  },
+  preparar(texto) {
+    const u = new SpeechSynthesisUtterance(this.limpar(texto));
+    const v = this.melhor();
+    u.lang = v ? v.lang : 'pt-BR';
+    if (v) u.voice = v;
+    u.rate = this.natural(v) ? 1 : 0.95; /* ritmo de conversa */
+    u.pitch = 1;                          /* tom natural, sem voz "de robô" */
+    return u;
+  },
   falar(html, botao) {
     if (!this.ok) return;
     try {
       window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(this.limpar(html));
-      u.lang = 'pt-BR'; u.rate = 0.92; u.pitch = 1.1;
-      const vs = window.speechSynthesis.getVoices() || [];
-      const v = vs.filter(x => /^pt[-_]BR/i.test(x.lang))[0] || vs.filter(x => /^pt/i.test(x.lang))[0];
-      if (v) u.voice = v;
+      const u = this.preparar(html);
       if (botao) { botao.classList.add('falando'); u.onend = u.onerror = () => botao.classList.remove('falando'); }
       window.speechSynthesis.speak(u);
     } catch (e) { /* voz indisponível neste aparelho */ }
@@ -2223,8 +2261,9 @@ function desenhaMapa() {
     cx.appendChild(b);
   });
   const feitas = fasesFeitas();
-  $('#b-video2').classList.toggle('chama', !S.viuVideo);
-  $('#mapa-fala').textContent = feitas === 0 && !S.viuVideo ? 'Eu sou o Dindim! Antes de jogar, toque em VÍDEO e conheça o dinheiro. Depois, comece pela fase 1!'
+  const viu = S.perfil && S.perfil.viuVideo;
+  $('#b-video2').classList.toggle('chama', !viu);
+  $('#mapa-fala').textContent = feitas === 0 && !viu ? 'Eu sou o Dindim! Antes de jogar, toque em VÍDEO e conheça o dinheiro. Depois, comece pela fase 1!'
     : feitas === 0 ? 'Eu sou o Dindim! Escolha uma fase para começar. Que tal a número 1?'
     : feitas < 6 ? 'Você já tem ' + totalEstrelas() + ' estrelas! Continue a missão: faltam ' + (6 - feitas) + (6 - feitas === 1 ? ' fase.' : ' fases.')
       : 'Missão cumprida! Veja suas medalhas e pegue seu certificado. Jogue de novo para ganhar mais estrelas!';
@@ -2236,6 +2275,7 @@ const Jogo = {
   fase: null, dados: null, i: -1, notas: [], pontos: 0, seq: 0, maxSeq: 0, total: 0, passo: null,
   livre(p) { return typeof p === 'function' ? !!p.livre : p.pontua === false; },
   abrirFase(n) {
+    if (precisaVideo()) { Video.abrir('obrigatorio'); return; }
     const f = FASES[n - 1];
     this.fase = f; this.dados = f.montar(S.ano);
     this.i = -1; this.notas = []; this.pontos = 0; this.seq = 0; this.maxSeq = 0;
@@ -2252,7 +2292,7 @@ const Jogo = {
     const b = el('button', 'btn btn-verde btn-g', 'COMEÇAR'); b.type = 'button';
     b.addEventListener('click', () => { Som.tocar('clique'); this.proximo(); });
     if (f.n === 1) {
-      const v = el('button', 'btn btn-sol' + (S.viuVideo ? '' : ' chama'), ICO.play + '<span>Assistir o vídeo primeiro</span>'); v.type = 'button';
+      const v = el('button', 'btn btn-sol' + (S.perfil && S.perfil.viuVideo ? '' : ' chama'), ICO.play + '<span>Assistir o vídeo primeiro</span>'); v.type = 'button';
       v.addEventListener('click', () => { Som.tocar('clique'); Video.abrir('fase1'); });
       c.appendChild(v);
     }
@@ -2443,10 +2483,13 @@ const CENAS = [
 ];
 
 const Video = {
-  i: 0, s: 0, tocando: false, acabou: false, gen: 0, timer: null, origem: 'inicio',
+  i: 0, s: 0, max: 0, tocando: false, acabou: false, obrig: false, gen: 0, timer: null, origem: 'inicio',
   abrir(origem) {
     this.origem = origem || 'inicio';
-    S.viuVideo = true; salvar();
+    /* Obrigatório: sem fechar, sem pular e sem avançar além do que já foi assistido. */
+    this.obrig = this.origem === 'obrigatorio';
+    this.max = 0;
+    $('#v-sair').hidden = this.obrig;
     Tela.ir('video');
     Mascote.por('masc-video', 'neutro');
     if (Voz.ok) { try { window.speechSynthesis.getVoices(); } catch (e) { /* ignora */ } }
@@ -2459,11 +2502,17 @@ const Video = {
     $('#v-palco').innerHTML = c.v;
     $('#v-chips').innerHTML = '';
     $('#v-leg').textContent = '';
+    this.max = Math.max(this.max, this.i);
+    if (c.fim) this.marcarVisto();
     $('#v-fim').hidden = !c.fim;
-    $('#v-pular').hidden = !!c.fim;
+    $('#v-pular').hidden = !!c.fim || this.obrig;
     $('#v-ant').disabled = this.i === 0;
-    $('#v-prox').disabled = this.i === CENAS.length - 1;
+    $('#v-prox').disabled = this.i === CENAS.length - 1 || (this.obrig && this.i >= this.max);
     this.barra();
+  },
+  marcarVisto() {
+    if (S.perfil) S.perfil.viuVideo = true;
+    S.viuVideo = true; salvar();
   },
   barra() {
     const c = CENAS[this.i], p = (this.i + Math.min(this.s, c.f.length) / c.f.length) / CENAS.length;
@@ -2504,11 +2553,7 @@ const Video = {
     const fim = () => { if (feito || g !== this.gen) return; feito = true; clearTimeout(this.timer); this.depois(); };
     if (S.som && Voz.ok) {
       try {
-        const u = new SpeechSynthesisUtterance(Voz.limpar(texto));
-        u.lang = 'pt-BR'; u.rate = 0.95; u.pitch = 1.15;
-        const vs = window.speechSynthesis.getVoices() || [];
-        const v = vs.filter(x => /^pt[-_]BR/i.test(x.lang))[0] || vs.filter(x => /^pt/i.test(x.lang))[0];
-        if (v) u.voice = v;
+        const u = Voz.preparar(texto);
         u.onend = fim; u.onerror = fim;
         window.speechSynthesis.resume();
         window.speechSynthesis.speak(u);
@@ -2545,7 +2590,7 @@ const Video = {
   jogar() {
     this.parar();
     if (this.origem === 'fase1') { Jogo.abrirFase(1); Jogo.proximo(); }
-    else if (S.ano) irMapa();
+    else if (this.origem === 'obrigatorio' || S.ano) irMapa();
     else abrirJogador();
   },
   ligar() {
@@ -2656,15 +2701,36 @@ function entrar() {
   S.nome = $('#in-nome').value.replace(/\s+/g, ' ').trim().slice(0, 24);
   S.ano = sel ? Number(sel.dataset.ano) : 5;
   S.voz = $('#ck-voz').checked && Voz.ok;
-  usarPerfil(S.nome); salvar(); irMapa();
+  usarPerfil(S.nome); salvar();
+  if (precisaVideo()) Video.abrir('obrigatorio'); else irMapa();
 }
 function atualizaSom() {
   $$('.btn-som').forEach(b => { b.innerHTML = S.som ? ICO.som : ICO.mudo; b.setAttribute('aria-pressed', S.som ? 'true' : 'false'); });
 }
+/* Escolher e testar a voz do narrador (as vozes dependem do aparelho e do navegador). */
+function abrirVozes() {
+  if (Tela.atual === 'video') Video.pausar();
+  const vs = Voz.lista(), atual = Voz.melhor();
+  const dica = '<p class="voz-dica">Dica: no computador, abra o jogo no <b>Microsoft Edge</b>. Ele tem vozes naturais em português, como a <b>Francisca</b> e o <b>Antonio</b>, que soam como uma pessoa falando (precisam de internet). No celular, as vozes do <b>Google</b> costumam ser as mais naturais.</p>';
+  if (!vs.length) {
+    abrirModal('<h2>Voz do narrador</h2><p>Este aparelho não tem voz em português instalada. O vídeo vai passar só com as legendas.</p>' + dica);
+    return;
+  }
+  abrirModal('<h2>Voz do narrador</h2><p>Toque em uma voz para ouvir. A última que você tocar fica escolhida. As marcadas como <b>natural</b> soam mais humanas.</p>' +
+    '<div class="vozes">' + vs.map((v, i) => '<button type="button" class="voz-op' + (v === atual ? ' sel' : '') + '" data-i="' + i + '"><b>' +
+      esc(v.name.replace(/\s*-\s*Portuguese.*$/i, '')) + (Voz.natural(v) ? '<span class="voz-tag">natural</span>' : '') + '</b><small>' + esc(v.lang) + '</small><span class="voz-play">ouvir</span></button>').join('') + '</div>' + dica,
+    [{ t: 'Pronto', cls: 'btn-verde' }]);
+  $$('.voz-op').forEach(b => b.addEventListener('click', () => {
+    S.vozNome = vs[Number(b.dataset.i)].name; salvar();
+    $$('.voz-op').forEach(x => x.classList.toggle('sel', x === b));
+    Voz.falar('Olá! Eu sou o Dindim, o cofrinho mais esperto do Brasil. É assim que eu vou falar no vídeo.');
+  }));
+}
+
 function abrirProfessor() {
   abrirModal('<h2>Para o professor</h2>' +
     '<p>Jogo de educação financeira para o 3º, 4º e 5º anos. O aluno aprende a ganhar, gastar, economizar e planejar o dinheiro.</p>' +
-    '<h3>Como funciona</h3><ul><li>Comece pelo <b>vídeo “Conheça o dinheiro”</b> (cerca de 4 minutos): o Dindim narra, com legendas, a história do dinheiro, as moedas e as notas do Real, como reconhecer uma nota verdadeira e como cuidar do dinheiro. Dá para pausar e voltar as cenas.</li><li>São <b>6 fases</b> com <b>5 desafios</b> cada: 30 desafios por ano escolar.</li>' +
+    '<h3>Como funciona</h3><ul><li>Na primeira vez que cada aluno entra, o <b>vídeo “Conheça o dinheiro”</b> (cerca de 4 minutos) passa obrigatoriamente antes das fases. Você pode deixá-lo opcional no botão abaixo. No vídeo, o Dindim narra, com legendas, a história do dinheiro, as moedas e as notas do Real, como reconhecer uma nota verdadeira e como cuidar do dinheiro. Dá para pausar e voltar as cenas.</li><li>São <b>6 fases</b> com <b>5 desafios</b> cada: 30 desafios por ano escolar.</li>' +
     '<li>Os desafios são sorteados e os valores mudam: cada partida é diferente.</li>' +
     '<li>Cada resposta traz uma explicação. A fase rende de 1 a 3 estrelas e uma medalha de bronze, prata ou ouro.</li>' +
     '<li>Ao terminar as 6 fases, o aluno recebe um certificado com o nome dele.</li></ul>' +
@@ -2677,7 +2743,12 @@ function abrirProfessor() {
     '<h3>Dicas de uso</h3><ul><li>Na tela “Quem vai jogar?”, ligue <b>Ler as perguntas em voz alta</b> para alunos com dificuldade de leitura. O botão roxo de alto-falante lê a pergunta a qualquer momento.</li>' +
     '<li>Nos desafios de arrastar, também dá para tocar na figura e depois no lugar dela.</li>' +
     '<li>O progresso fica guardado neste aparelho, separado pelo nome de cada aluno.</li></ul>',
-    [{ t: 'Apagar o progresso deste aparelho', cls: 'btn-coral', fn: () => abrirModal('<h2>Apagar tudo?</h2><p>As estrelas, os pontos e as medalhas de todos os alunos neste aparelho serão apagados. Não dá para desfazer.</p>',
+    [{ t: 'Escolher a voz do narrador', cls: 'btn-uva', fn: () => setTimeout(abrirVozes, 0) },
+    { t: S.videoLivre ? 'Deixar o vídeo obrigatório' : 'Deixar o vídeo opcional', fn: () => {
+      S.videoLivre = !S.videoLivre; salvar();
+      setTimeout(() => abrirModal('<h2>Pronto!</h2><p>' + (S.videoLivre ? 'Agora o vídeo é <b>opcional</b>: os alunos podem jogar sem assistir.' : 'Agora o vídeo é <b>obrigatório</b>: na primeira vez, cada aluno assiste ao vídeo até o fim antes de jogar.') + '</p>'), 0);
+    } },
+    { t: 'Apagar o progresso deste aparelho', cls: 'btn-coral', fn: () => abrirModal('<h2>Apagar tudo?</h2><p>As estrelas, os pontos e as medalhas de todos os alunos neste aparelho serão apagados. Não dá para desfazer.</p>',
       [{ t: 'Cancelar' }, { t: 'Apagar', cls: 'btn-coral', fn: () => { S.perfis = {}; usarPerfil(S.nome); salvar(); abrirModal('<h2>Pronto!</h2><p>O progresso deste aparelho foi apagado.</p>'); } }]) },
     { t: 'Fechar', cls: 'btn-verde' }]);
 }
@@ -2703,6 +2774,8 @@ function iniciar() {
   if (window.JOGO_ARQUIVO) $('#b-imprimir').hidden = false;
   atualizaSom();
   Video.ligar();
+  if (Voz.ok) { try { window.speechSynthesis.getVoices(); window.speechSynthesis.onvoiceschanged = () => {}; } catch (e) { /* ignora */ } }
+  $('#v-voz').addEventListener('click', () => { Som.tocar('clique'); abrirVozes(); });
 
   const clique = (id, fn) => $(id).addEventListener('click', () => { Som.tocar('clique'); fn(); });
   clique('#b-jogar', abrirJogador);
